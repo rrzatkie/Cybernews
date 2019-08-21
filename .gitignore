@@ -1,2 +1,3 @@
 Notebooks/env
 Notebooks/.ipynb_checkpoints/*
+**/data/**
