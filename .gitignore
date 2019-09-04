@@ -2,3 +2,4 @@ Notebooks/env
 Notebooks/.ipynb_checkpoints/*
 **/data/**
 **/*.csv
+Notebooks/logs
