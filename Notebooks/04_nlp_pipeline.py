@@ -46,17 +46,29 @@ nlp = spacy.load("en_core_web_md")
 # pipeline = ["tagger", "parser", "ner", "textcat"]
 
 # Add text categorization pipe
-component = nlp.create_pipe("textcat")
-nlp.add_pipe(component)
+# component = nlp.create_pipe("textcat")
+# nlp.add_pipe(component)
 
-df_test = df[0:3]
+#%%
+df_test = df[0:1]
 
 
 #%%
 
-docs = nlp.pipe(df.text_scraped.values)
-for doc in docs:
-	print(doc.text)
+docs = nlp.pipe(list(df_test.text_scraped.values))
 
+doc = list(docs)[0]
+
+#%%
+
+POS_ALLOWED = ["NOUN", "VERB"]
+
+doc_lemmatized = []
+doc_ner = []
+
+for token in doc:
+	if(token.pos_ in POS_ALLOWED and token.lemma_ not in doc_lemmatized and token):
+		doc_lemmatized.append(token.lemma_)
+		doc_ner.append({token:token.ent_type})
 
 #%%
