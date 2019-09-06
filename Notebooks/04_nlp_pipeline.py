@@ -1,5 +1,7 @@
 # To add a new cell, type '#%%'
 # To add a new markdown cell, type '#%% [markdown]'
+
+
 #%% Change working directory from the workspace root to the ipynb file location. Turn this addition off with the DataScience.changeDirOnImportExport setting
 # ms-python.python added
 import os
@@ -8,6 +10,7 @@ try:
 	print(os.getcwd())
 except:
 	pass
+
 
 #%%
 import pandas as pd
@@ -36,6 +39,24 @@ df.text_scraped_words.values[0]
 
 
 #%%
+import spacy
+
+result = []
+nlp = spacy.load("en_core_web_md")
+# pipeline = ["tagger", "parser", "ner", "textcat"]
+
+# Add text categorization pipe
+component = nlp.create_pipe("textcat")
+nlp.add_pipe(component)
+
+df_test = df[0:3]
 
 
+#%%
 
+docs = nlp.pipe(df.text_scraped.values)
+for doc in docs:
+	print(doc.text)
+
+
+#%%
