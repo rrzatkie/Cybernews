@@ -5,7 +5,6 @@ import threading
 import logging
 from logging.handlers import QueueHandler, QueueListener
 import datetime
-from tqdm import tqdm
 import requests
 import time
 import sys
@@ -67,7 +66,6 @@ def download_all_sites(sites):
 def main(df):
     scraped_articles = []
     num_cores = mp.cpu_count()
-    last_output_len = 0
 
     inputs = [row for k,row in df.iterrows()]
     scraped_articles.extend(download_all_sites(inputs))

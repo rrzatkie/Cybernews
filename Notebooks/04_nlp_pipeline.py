@@ -1,74 +1,159 @@
-# To add a new cell, type '#%%'
-# To add a new markdown cell, type '#%% [markdown]'
-
-
-#%% Change working directory from the workspace root to the ipynb file location. Turn this addition off with the DataScience.changeDirOnImportExport setting
-# ms-python.python added
-import os
-try:
-	os.chdir(os.path.join(os.getcwd(), 'Notebooks'))
-	print(os.getcwd())
-except:
-	pass
-
-
-#%%
+import numpy as np
+import multiprocessing as mp
+import concurrent.futures
+import threading
+import logging
+from logging.handlers import QueueHandler, QueueListener
 import pandas as pd
 import os
 import re
 from datetime import datetime
-
-fn_list = os.listdir("data/after-cleaning")
-
-#after-scraping-08-29-2019-01-15-09.csv
-dates = list(map(lambda x: {'fileName': x, 'date': re.search("([0-9]{2}\-[0-9]{2}\-[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2})", x).group()}, fn_list)) 
-dates = list(map(lambda x: {'fileName': x['fileName'], 'date': datetime.strptime(x['date'], "%m-%d-%Y-%H-%M-%S")}, dates))
-dates.sort(key=lambda x: x['date'], reverse=True)
-
-fn_newest = dates[0]['fileName']
-
-f = open("data/after-cleaning/{}".format(fn_newest), 'r', encoding="utf-8")
-df = pd.read_csv(f, index_col=0, converters={'text_scraped_words': lambda x: x[1:-1].replace("'", "").split(', ')})
-f.close()
-
-print("Successfully imported file: {}".format(fn_newest)) 
-
-
-#%%
-df.text_scraped_words.values[0]
-
-
-#%%
+import time
 import spacy
+import pickle
 
-result = []
-nlp = spacy.load("en_core_web_md")
-# pipeline = ["tagger", "parser", "ner", "textcat"]
+# Global spaCy model object
+nlp = None
+# Enable text categorization by spacy
+TEXT_CAT_ENABLE = False
+# Global counter
+counter = None
+# Total count
+total_count = 0
 
-# Add text categorization pipe
-# component = nlp.create_pipe("textcat")
-# nlp.add_pipe(component)
+def nlp_pipeline(texts):
+    global nlp
+    nlp_model = "en_core_web_md"
 
-#%%
-df_test = df[0:1]
+    global total_count
+    global counter
 
+    if(nlp is None):
+        nlp = spacy.load(nlp_model)
+        logging.info("Loaded nlp model: {}.".format(nlp_model))
+    
+    if(TEXT_CAT_ENABLE):
+        # Add text categorization pipe
+        component = nlp.create_pipe("textcat")
+        nlp.add_pipe(component)
+        logging.info("Added TextCategorization step in nlp pipeline.")
 
-#%%
+    POS_ALLOWED = ["NOUN", "VERB", "PROPN", "NUM"]
 
-docs = nlp.pipe(list(df_test.text_scraped.values))
+    docs_lemmatized = []
+    docs_ner = []
+    for doc in nlp.pipe(texts):
+        logging.info("Started processing article [{}...]".format(doc.text[0:20].encode("utf-8")))
+        doc_lemmatized = []
+        doc_ner = []
+        for token in doc:
+            if(token.pos_ in POS_ALLOWED and token.lemma_ not in doc_lemmatized):
+                doc_lemmatized.append(token.lemma_)
+                if(token.ent_type_ != "" ):
+                    doc_ner.append("{}:{}".format(token,token.ent_type_))
+        
+        docs_lemmatized.append(doc_lemmatized)
+        docs_ner.append(doc_ner)
+        
+        with counter.get_lock():
+            counter.value += 1
+        
+        logging.info("Processed articles: {} / {}.".format(counter.value, total_count))
+    
+    df = pd.DataFrame(columns = ['text_lemmatized', "text_ner"])
+    df["text_lemmatized"] = docs_lemmatized
+    df["text_ner"] = docs_ner
 
-doc = list(docs)[0]
+    return df
 
-#%%
+def worker_init(q, cntr, tc):
+    # all records from worker processes go to qh and then into q
+    qh = QueueHandler(q)
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    logger.addHandler(qh)
 
-POS_ALLOWED = ["NOUN", "VERB"]
+    global counter
+    counter = cntr
 
-doc_lemmatized = []
-doc_ner = []
+    global total_count
+    total_count = tc
 
-for token in doc:
-	if(token.pos_ in POS_ALLOWED and token.lemma_ not in doc_lemmatized and token):
-		doc_lemmatized.append(token.lemma_)
-		doc_ner.append({token:token.ent_type})
+def logger_init():
+    q = mp.Queue()
 
-#%%
+    formatter = logging.Formatter('%(asctime)s - %(name)s(%(process)d) - %(levelname)s - %(message)s')
+
+    sh = logging.StreamHandler()
+    sh.setLevel(logging.INFO)
+    sh.setFormatter(formatter)
+
+    fh = logging.FileHandler(r'logs/{}-nlp-pipeline-logs'.format(datetime.now().strftime("%Y-%m-%d-%H-%M-%S")))
+    fh.setLevel(logging.INFO)
+    fh.setFormatter(formatter)
+
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+
+    logger.addHandler(fh)
+    logger.addHandler(sh)
+
+    ql = QueueListener(q, sh, fh)
+    ql.start()
+
+    return ql, q
+
+def main(df):
+    q_listener, q = logger_init()
+
+    df = df[0:]
+
+    num_cores = int(mp.cpu_count()/4)
+
+    cnt = mp.Value("i", 0)
+    total_count = len(df.values)
+
+    inputs = np.array_split(df.text_scraped, num_cores)
+
+    with mp.Pool(num_cores, worker_init, [q, cnt, total_count]) as pool:
+        df_temp = pd.concat(pool.map(nlp_pipeline, inputs), ignore_index=True, axis=0)
+    logging.info(df_temp.shape)
+    logging.info(df.shape)
+    df_new = pd.concat([df, df_temp], ignore_index=True, axis=1)
+    df=df_new
+    file_name = r'data\after-nlp-pipeline\after-nlp-pipeline-{}.csv'.format(datetime.now().strftime("%m-%d-%Y-%H-%M-%S"))
+    f = open(file_name, 'w', encoding="utf-8")
+    df.to_csv(path_or_buf=f)
+    f.close()
+
+    q_listener.stop()
+
+def get_newest_file(fn_list):
+    dates = []
+    for f in fn_list:
+        match = re.search("([0-9]{2}-[0-9]{2}-[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2})", f)
+        if(match is not None):
+            dates.append({'fileName': f, 'date': match.group()})
+    
+    dates = list(map(lambda x: {'fileName': x['fileName'], 'date': datetime.strptime(x['date'], "%m-%d-%Y-%H-%M-%S")}, dates))
+    dates.sort(key=lambda x: x['date'], reverse=True)
+
+    return dates[0]['fileName']
+
+if __name__ == '__main__':
+    fn_list = os.listdir("data/after-cleaning")
+
+    fn_newest = get_newest_file(fn_list)
+
+    f = open("data/after-cleaning/{}".format(fn_newest), 'r', encoding="utf-8")
+    df = pd.read_csv(f, index_col=0, converters={'text_scraped_words': lambda x: x[1:-1].replace("'", "").split(', ')})
+    f.close()
+
+    logging.info("Successfully imported file: {}".format(fn_newest)) 
+
+    start_time = time.time()
+
+    main(df)
+
+    elapsed_time = time.time()-start_time
+    logging.info("Success! Elapsed time: {}".format(elapsed_time))

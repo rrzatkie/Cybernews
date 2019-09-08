@@ -43,7 +43,7 @@ def worker(df_row):
     except Exception as e:
         logging.warning("{} - Processing failed for url: {}\n".format(str(datetime.datetime.now()), url))
         logging.warning("EXCEPTION - {}\n".format(e))
-        logging.warning("PID that casued exception: {}\n".format(mp.getpid()))
+        logging.warning("PID that casued exception: {}\n".format(os.getpid()))
     finally:        
         logging.info('{} - Finished processing url: {}\n'.format(str(datetime.datetime.now()), url))
         df_row['text_scraped']=text
