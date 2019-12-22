@@ -1,5 +1,8 @@
 import numpy as np
 import multiprocessing as mp
+from joblib import Parallel, delayed
+from spacy.util import minibatch
+from functools import partial 
 import concurrent.futures
 import threading
 import logging
@@ -14,10 +17,13 @@ import pickle
 
 # Global spaCy model object
 nlp = None
+
 # Enable text categorization by spacy
 TEXT_CAT_ENABLE = False
+
 # Global counter
 counter = None
+
 # Total count
 total_count = 0
 
@@ -32,17 +38,17 @@ def nlp_pipeline(texts):
         nlp = spacy.load(nlp_model)
         logging.info("Loaded nlp model: {}.".format(nlp_model))
     
-    if(TEXT_CAT_ENABLE):
-        # Add text categorization pipe
-        component = nlp.create_pipe("textcat")
-        nlp.add_pipe(component)
-        logging.info("Added TextCategorization step in nlp pipeline.")
+    # if(TEXT_CAT_ENABLE):
+    #     # Add text categorization pipe
+    #     component = nlp.create_pipe("textcat")
+    #     nlp.add_pipe(component)
+    #     logging.info("Added TextCategorization step in nlp pipeline.")
 
     POS_ALLOWED = ["NOUN", "VERB", "PROPN", "NUM"]
 
     docs_lemmatized = []
     docs_ner = []
-    for doc in nlp.pipe(texts):
+    for doc in nlp.pipe(texts,batch_size=1, n_threads=mp.cpu_count()):
         logging.info("Started processing article [{}...]".format(doc.text[0:20].encode("utf-8")))
         doc_lemmatized = []
         doc_ner = []
@@ -66,12 +72,12 @@ def nlp_pipeline(texts):
 
     return df
 
-def worker_init(q, cntr, tc):
-    # all records from worker processes go to qh and then into q
-    qh = QueueHandler(q)
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-    logger.addHandler(qh)
+def worker_init(cntr, tc):
+    # # all records from worker processes go to qh and then into q
+    # qh = QueueHandler(q)
+    # logger = logging.getLogger()
+    # logger.setLevel(logging.INFO)
+    # logger.addHandler(qh)
 
     global counter
     counter = cntr
@@ -80,7 +86,7 @@ def worker_init(q, cntr, tc):
     total_count = tc
 
 def logger_init():
-    q = mp.Queue()
+    # q = mp.Queue()
 
     formatter = logging.Formatter('%(asctime)s - %(name)s(%(process)d) - %(levelname)s - %(message)s')
 
@@ -98,35 +104,45 @@ def logger_init():
     logger.addHandler(fh)
     logger.addHandler(sh)
 
-    ql = QueueListener(q, sh, fh)
-    ql.start()
+    # ql = QueueListener(q, sh, fh)
+    # ql.start()
 
-    return ql, q
+    # return ql, q
 
 def main(df):
-    q_listener, q = logger_init()
+    # q_listener, q = logger_init()
 
     df = df[0:]
 
-    num_cores = int(mp.cpu_count()/4)
+    num_cores = mp.cpu_count()
 
     cnt = mp.Value("i", 0)
     total_count = len(df.values)
 
-    inputs = np.array_split(df.text_scraped, num_cores)
+    worker_init(cnt, total_count)
 
-    with mp.Pool(num_cores, worker_init, [q, cnt, total_count]) as pool:
-        df_temp = pd.concat(pool.map(nlp_pipeline, inputs), ignore_index=True, axis=0)
-    logging.info(df_temp.shape)
-    logging.info(df.shape)
-    df_new = pd.concat([df, df_temp], ignore_index=True, axis=1)
-    df=df_new
+    # inputs = np.array_split(df[0:100].text_scraped, num_cores)
+
+    global nlp
+    nlp = spacy.load("en_core_web_md")
+
+    # results = Parallel(n_jobs=int(num_cores/4), backend="multiprocessing", prefer="processes") (
+    #     delayed(nlp_pipeline)(part) for part in inputs
+    # )
+
+    # df_temp = pd.concat(results, ignore_index=True, axis=0) 
+    
+    df_new = nlp_pipeline(df.text_scraped)
+    df_new.index = df.index
+    
+    df = pd.concat([df, df_new], axis=1)
+        
     file_name = r'data\after-nlp-pipeline\after-nlp-pipeline-{}.csv'.format(datetime.now().strftime("%m-%d-%Y-%H-%M-%S"))
     f = open(file_name, 'w', encoding="utf-8")
     df.to_csv(path_or_buf=f)
     f.close()
 
-    q_listener.stop()
+    # q_listener.stop()
 
 def get_newest_file(fn_list):
     dates = []
@@ -137,12 +153,12 @@ def get_newest_file(fn_list):
     
     dates = list(map(lambda x: {'fileName': x['fileName'], 'date': datetime.strptime(x['date'], "%m-%d-%Y-%H-%M-%S")}, dates))
     dates.sort(key=lambda x: x['date'], reverse=True)
-
     return dates[0]['fileName']
 
 if __name__ == '__main__':
-    fn_list = os.listdir("data/after-cleaning")
+    logger_init()
 
+    fn_list = os.listdir("data/after-cleaning")
     fn_newest = get_newest_file(fn_list)
 
     f = open("data/after-cleaning/{}".format(fn_newest), 'r', encoding="utf-8")

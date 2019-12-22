@@ -37,7 +37,7 @@ def download_site(df_row):
             article.html = response.text
             article.download_state = 2
             article.parse()
-            time.sleep(0.5)
+            
             text = article.text
     except Exception as e:
         logging.warning("Processing failed for url: {}\n".format(url))
@@ -46,12 +46,17 @@ def download_site(df_row):
     finally:
         global global_counter
         global count
+        
         lock.acquire()
+        
         global_counter += 1
         logging.info('Finished processing url: {}\n'.format(url))
         logging.info('Processed {} / {} URLs.\n'.format(global_counter, count))
+        
         lock.release()
+        
         df_row['text_scraped']=text
+        
         return df_row
 
 def download_all_sites(sites):
