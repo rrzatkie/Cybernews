@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CategoryViewComponent } from './category-view.component';
+import { CategoryViewComponent } from './category-view/category-view.component';
 
 @NgModule({
   imports: [
