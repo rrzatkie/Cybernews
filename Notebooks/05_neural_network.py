@@ -66,37 +66,5 @@ def custom_tokenizer(text):
 n_topics = 15
 n_top_words = 11
 
-
-# data = []
-
-# for text in df.text_lemmatized.values:
-#     data.append(" ".join([word for word in text]))
-
 vectorizer = TfidfVectorizer(tokenizer=custom_tokenizer, stop_words='english', lowercase=False, min_df=int())    
 data_vectorized = vectorizer.fit_transform(df.text_lemmatized.values)
-
-
-#%%
-
-
-
-#%%
-data
-
-
-#%%
-data_vectorized.nnz/(data_vectorized.shape[0]*data_vectorized.shape[1])
-
-
-#%%
-data_vectorized
-
-
-#%%
-vectorizer.vocabulary_
-
-
-#%%
-np.argmax(list(vectorizer.vocabulary_.values()))
-
-
