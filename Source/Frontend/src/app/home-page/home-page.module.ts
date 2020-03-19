@@ -1,11 +1,14 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HomePageComponent } from './home-page/home-page.component';
+import { HomePageComponent } from './home-page.component';
+import { NewsSliderComponent } from "./news-slider/news-slider.component";
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 @NgModule({
   imports: [
-    CommonModule
+    CommonModule,
+    NgbModule
   ],
-  declarations: [HomePageComponent]
+  declarations: [HomePageComponent, NewsSliderComponent]
 })
 export class HomePageModule { }

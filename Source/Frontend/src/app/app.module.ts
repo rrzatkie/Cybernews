@@ -1,31 +1,40 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
+import { NgModule, APP_INITIALIZER } from '@angular/core';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 
-import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
-import { NewsSliderComponent } from './home-page/news-slider/news-slider.component';
-import {NavbarModule} from './navbar/navbar.module';
-import { HomePageComponent } from './home-page/home-page.component';
-import { CategoryViewComponent } from './category-view/category-view.component';
-import { ArticleViewComponent } from './category-view/article-view/article-view.component';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { NavbarModule } from './navbar/navbar.module';
+import { HomePageModule } from './home-page/home-page.module';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { ConfigurationService } from './core/services/configuration/configuration/configuration.service';
+
+export function configServiceFactory(config: ConfigurationService) {
+   return () => config.load();
+ }
 
 @NgModule({
    declarations: [
-      AppComponent,
-      NewsSliderComponent,
-      HomePageComponent,
-      CategoryViewComponent,
-      ArticleViewComponent
+      AppComponent
    ],
    imports: [
       BrowserModule,
       AppRoutingModule,
       NgbModule,
-      NavbarModule
+      NavbarModule,
+      HomePageModule,
+      FontAwesomeModule
    ],
-   providers: [],
+   providers: [
+      ConfigurationService,
+      {
+         provide: APP_INITIALIZER,
+         useFactory: configServiceFactory,
+         deps: [ConfigurationService],
+         multi: true
+      },
+   ],
    bootstrap: [
       AppComponent
    ]
