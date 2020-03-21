@@ -4,3 +4,5 @@ Notebooks/.ipynb_checkpoints/*
 **/*.csv
 Notebooks/logs
 .vscode
+**/bin/**
+**/obj/**
