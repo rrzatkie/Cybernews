@@ -1,11 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+using AutoMapper;
+using Cybernews.CybernewsApi.Services;
+using Cybernews.DAL.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -26,6 +31,13 @@ namespace Cybernews.CybernewsApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+
+            var conf = Configuration.GetConnectionString("DefaultConnection");
+
+            services.AddDbContext<CybernewsContext>(x => x.UseSqlServer(conf));
+            services.AddAutoMapper(typeof(Startup));
+
+            services.AddScoped<IArticlesService,ArticlesService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -36,7 +48,7 @@ namespace Cybernews.CybernewsApi
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseHttpsRedirection();
+            // app.UseHttpsRedirection();
 
             app.UseRouting();
 
