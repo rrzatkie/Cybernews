@@ -38,6 +38,18 @@ namespace Cybernews.CybernewsApi
             services.AddAutoMapper(typeof(Startup));
 
             services.AddScoped<IArticlesService,ArticlesService>();
+            
+            services.AddCors(options =>
+            {
+                options.AddPolicy(
+                    "CorsPolicy",
+                    builder =>
+                {
+                    builder.WithOrigins("*")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
+                });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -51,6 +63,7 @@ namespace Cybernews.CybernewsApi
             // app.UseHttpsRedirection();
 
             app.UseRouting();
+            app.UseCors("CorsPolicy");
 
             app.UseAuthorization();
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Cybernews.CybernewsApi.Dtos;
 using Microsoft.AspNetCore.Mvc;
 //using Cybernews.CybernewsApi.Models;
 
@@ -18,14 +19,14 @@ namespace Cybernews.CybernewsApi.Controllers
 
         }
 
-        [HttpGet("articleCard/{id}")]
-        public async Task<ActionResult> GetArticleCard(int id)
+        [HttpGet("articleCards")]
+        public async Task<ActionResult> GetArticleCards([FromQuery] PaginationOptionsDto paginationOptions, [FromQuery] QueryDto query)
         {
-            return Ok(await articlesService.GetArticleCard(id));
+            return Ok(await articlesService.GetArticleCards(paginationOptions, query));
         }
 
 
-        [HttpGet("articleDetails/{articleId}")]
+        [HttpGet("articleDetails/{id}")]
         public async Task<ActionResult> GetArtcleDetails(int id)
         {
             return Ok(await articlesService.GetArticleDetails(id));

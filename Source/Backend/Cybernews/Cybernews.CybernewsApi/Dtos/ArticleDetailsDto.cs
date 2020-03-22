@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Cybernews.CybernewsApi.Dtos
 {
     public class ArticleDetailsDto
@@ -6,6 +8,6 @@ namespace Cybernews.CybernewsApi.Dtos
         public string ArticleImgUrl { get; set; }
         public string ArticleTitle { get; set; }
         public string ArticleUrl { get; set; }
-        public CategoryDto[] ArticleKeywords { get; set; }
+        public List<KeywordDto> ArticleKeywords { get; set; }
     }
 }
