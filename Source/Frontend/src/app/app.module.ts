@@ -1,5 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule, APP_INITIALIZER } from '@angular/core';
+import { KeyValuePipe } from "@angular/common";
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -9,6 +10,7 @@ import { NavbarModule } from './navbar/navbar.module';
 import { HomePageModule } from './home-page/home-page.module';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { ConfigurationService } from './core/services/configuration/configuration/configuration.service';
+import { HttpClientModule } from '@angular/common/http';
 
 export function configServiceFactory(config: ConfigurationService) {
    return () => config.load();
@@ -24,7 +26,8 @@ export function configServiceFactory(config: ConfigurationService) {
       NgbModule,
       NavbarModule,
       HomePageModule,
-      FontAwesomeModule
+      FontAwesomeModule,
+      HttpClientModule
    ],
    providers: [
       ConfigurationService,
@@ -34,6 +37,7 @@ export function configServiceFactory(config: ConfigurationService) {
          deps: [ConfigurationService],
          multi: true
       },
+      KeyValuePipe
    ],
    bootstrap: [
       AppComponent

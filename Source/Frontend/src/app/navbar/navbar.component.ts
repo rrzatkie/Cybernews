@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { Category, CybernewsApiResponse } from '../shared/article';
+import { ArticleRepositoryService } from '../services/repository/article-repository.service';
 
 @Component({
   selector: 'app-navbar',
@@ -6,9 +8,15 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./navbar.component.css']
 })
 export class NavbarComponent implements OnInit {
+  categories: Category[] = [];
 
-  constructor() { }
+  constructor(
+    private readonly articleRepositoryService: ArticleRepositoryService
+  ) { }
 
   ngOnInit() {
+    this.articleRepositoryService.getCategories().subscribe((response: CybernewsApiResponse) => {
+      this.categories = response.data as Category[];
+    });
   }
 }

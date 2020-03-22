@@ -1,5 +1,5 @@
 {
     "CybernewsApi": {
-        "Url": "https://localhost:4201/api/"
+        "Url": "http://localhost:4201/api/"
     }
 }

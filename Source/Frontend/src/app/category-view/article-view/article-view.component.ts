@@ -10,6 +10,7 @@ export class ArticleViewComponent implements OnInit {
   constructor() { }
 
   ngOnInit() {
+
   }
 
 }

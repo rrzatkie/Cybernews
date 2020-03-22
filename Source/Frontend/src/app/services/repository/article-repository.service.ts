@@ -3,47 +3,9 @@ import { HttpClient, HttpParams, HttpErrorResponse, HttpResponse } from '@angula
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ConfigurationService } from 'src/app/core/services/configuration/configuration/configuration.service';
+import { CybernewsApiResponse, PaginationOptions, Query, ArticleCardType } from 'src/app/shared/article';
+import { KeyValuePipe } from '@angular/common';
 
-export interface SlidesList{
-  slides: Slide[];
-  count: number;
-}
-
-export interface Slide{
-  articleId: string;
-  articleImgUrl: string;
-  articleTitle: string;
-  articleUrl: string;
-}
-
-export interface Category{
-  categoryId: string;
-  categoryNameToDisplay: string;
-  categorySlug: string;
-}
-
-export interface Keyword{
-  keywordId: string;
-  keywordNameToDisplay: string;
-  keywordSlug: string;
-}
-
-export interface ArticleCard{
-  articleId: string;
-  articleImgUrl: string;
-  articleTitle: string;
-  articleUrl: string;
-  articleDate: string;
-  articleCategory: Category;
-}
-
-export interface ArticleDetails{
-  articleId: string;
-  articleImgUrl: string;
-  articleTitle: string;
-  articleUrl: string;
-  articleKeywords: Keyword[];
-}
 
 @Injectable({
   providedIn: 'root'
@@ -53,13 +15,27 @@ export class ArticleRepositoryService {
 
   constructor(
     private readonly http: HttpClient,
+    private readonly pipe: KeyValuePipe,
     private readonly configuration: ConfigurationService) {
       this.articleApiUrl = configuration.environmentConfiguration.CybernewsApi.Url + 'ArticlesUI';
    }
 
-  getSlides(category: string): Observable<SlidesList>{
-    const url = `${this.articleApiUrl}/slides/${category}`;
-    return this.http.get<SlidesList>(url, {observe: 'response' })
+   objectsToQueryString(objs: Array<any>): HttpParams {
+    let httpParams = new HttpParams();
+
+    objs.forEach(obj => {
+      obj = this.pipe.transform(obj);
+      obj.forEach(item => {
+        httpParams = httpParams.set(item.key, item.value);
+      });
+    });
+
+    return httpParams;
+  }
+
+  getSlides(categoryId: number): Observable<CybernewsApiResponse> {
+    const url = `${this.articleApiUrl}/slides/${categoryId}`;
+    return this.http.get<CybernewsApiResponse>(url, {observe: 'response' })
       .pipe(
         map(response => {
           return response.body;
@@ -67,21 +43,33 @@ export class ArticleRepositoryService {
     );
   }
 
-  getArticleCard(id: number): Observable<ArticleCard>{
-    const url = `${this.articleApiUrl}/articleCard/${id}`;
+  getArticleCards(limit: number, pageNumber: number, type: ArticleCardType, id: number): Observable<CybernewsApiResponse> {
+    const paginationOptions: PaginationOptions = {
+      limit,
+      pageNumber
+    };
+    const searchOptions: Query = {
+      type,
+      itemId: id
+    };
+    const httpParams = this.objectsToQueryString([paginationOptions, searchOptions]);
 
-    return this.http.get<ArticleCard>(url, {observe: 'response' })
-      .pipe(
-        map(response => {
-          return response.body;
-        })
-    );
+    const url = `${this.articleApiUrl}/articleCards`;
+
+    return this.http.get<CybernewsApiResponse>(url, {
+        observe: 'response',
+        params: httpParams
+      }).pipe(
+          map(response => {
+            return response.body;
+          })
+      );
   }
 
-  getArticleDetails(id: number): Observable<ArticleDetails>{
+  getArticleDetails(id: number): Observable<CybernewsApiResponse> {
     const url = `${this.articleApiUrl}/articleDetails/${id}`;
 
-    return this.http.get<ArticleDetails>(url, {observe: 'response' })
+    return this.http.get<CybernewsApiResponse>(url, {observe: 'response' })
       .pipe(
         map(response => {
           return response.body;
@@ -89,10 +77,10 @@ export class ArticleRepositoryService {
     );
   }
 
-  getCategories(): Observable<Category[]>{
+  getCategories(): Observable<CybernewsApiResponse> {
     const url = `${this.articleApiUrl}/categories`;
 
-    return this.http.get<Category[]>(url, {observe: 'response' })
+    return this.http.get<CybernewsApiResponse>(url, {observe: 'response' })
       .pipe(
         map(response => {
           return response.body;
@@ -100,6 +88,6 @@ export class ArticleRepositoryService {
     );
   }
 
-  
+
 
 }
