@@ -12,5 +12,6 @@ namespace Cybernews.CybernewsApi.Dtos
         public string ArticleUrl { get; set; }
         public DateTime ArticleDateCreated { get; set; }
         public List<CategoryDto> ArticleCategories { get; set; }
+        public List<KeywordDto> ArticleKeywords { get; set; }
     }
 }

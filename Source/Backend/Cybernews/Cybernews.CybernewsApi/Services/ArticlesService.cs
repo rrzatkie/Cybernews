@@ -1,3 +1,4 @@
+using System.IO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,25 +26,33 @@ namespace Cybernews.CybernewsApi.Services
 
         public async Task<ServiceResponse<List<ArticleCardDto>>> GetArticleCards(PaginationOptionsDto paginationOptions, QueryDto query)
         {
-            var serviceResponse = new ServiceResponse<List<ArticleCardDto>>();
-            List<int> articleIds;
-
             switch (query.Type)
             {
                 case ArticleCardType.Category:
-                    var articleCategoriesQuery = this.context.ArticleCategories;
-                    articleIds = await articleCategoriesQuery.Where(x => x.CategoryId == query.ItemId).Select(x => x.ArticleId).ToListAsync();
-                    
-                    break;
+                    return await GetArticleCardsByCategory(paginationOptions, query.ItemId);
                 case ArticleCardType.Keyword:
-                    var articleKeywordQuery = this.context.ArticleKeywords;
-                    articleIds = await articleKeywordQuery.Where(x => x.KeywordId == query.ItemId).Select(x => x.ArticleId).ToListAsync();
-
-                    break;
+                    return await GetArticleCardsByKeyword(paginationOptions, query.ItemId);
                 default:
-                    serviceResponse.Success = false;
+                    var serviceResponse = new ServiceResponse<List<ArticleCardDto>>();
                     serviceResponse.Message = "Unknown card type!";
                     return serviceResponse;
+            }
+        }
+
+        private async Task<ServiceResponse<List<ArticleCardDto>>> GetArticleCardsByCategory(PaginationOptionsDto paginationOptions, int categoryId)
+        {
+            var serviceResponse = new ServiceResponse<List<ArticleCardDto>>();
+
+            var articleCategoriesQuery = this.context.ArticleCategories;
+            var articleIds = await articleCategoriesQuery.Where(x => x.CategoryId == categoryId).Select(x => x.ArticleId).ToListAsync();
+
+            var articleCategories = new Dictionary<int, List<Category>>();
+            foreach (var id in articleIds)
+            {
+                var articleCategoriesIds = await articleCategoriesQuery.Where(x => x.ArticleId == id).Select(x => x.CategoryId).ToListAsync();
+                IQueryable<Category> categoriesQuery = this.context.Categories; 
+                var categories = await categoriesQuery.Where(x => articleCategoriesIds.Contains(x.Id)).ToListAsync();
+                articleCategories[id] = categories;
             }
 
             IQueryable<Article> articleQuery = this.context.Articles;
@@ -51,8 +60,45 @@ namespace Cybernews.CybernewsApi.Services
 
             var nToSkip = (paginationOptions.PageNumber - 1) * paginationOptions.Limit;
             var articles = await articleQuery.Skip(nToSkip).Take(paginationOptions.Limit).ToListAsync();
-
+            
             serviceResponse.Data = this.mapper.Map<List<Article>, List<ArticleCardDto>>(articles);
+
+            foreach (var article in serviceResponse.Data)
+            {
+                article.ArticleCategories = this.mapper.Map<List<Category>, List<CategoryDto>>(articleCategories[article.ArticleId]);
+            }
+
+            return serviceResponse;
+        }
+
+        private async Task<ServiceResponse<List<ArticleCardDto>>> GetArticleCardsByKeyword(PaginationOptionsDto paginationOptions, int keywordId)
+        {
+            var serviceResponse = new ServiceResponse<List<ArticleCardDto>>();
+
+            var articleKeywordsQuery = this.context.ArticleKeywords;
+            var articleIds = await articleKeywordsQuery.Where(x => x.KeywordId == keywordId).Select(x => x.ArticleId).ToListAsync();
+
+            var articleKeywords = new Dictionary<int, List<Keyword>>();
+            foreach (var id in articleIds)
+            {
+                var articleKeywordsIds = await articleKeywordsQuery.Where(x => x.ArticleId == id).Select(x => x.KeywordId).ToListAsync();
+                IQueryable<Keyword> keywordsQuery = this.context.Keywords; 
+                var keywords = await keywordsQuery.Where(x => articleKeywordsIds.Contains(x.Id)).ToListAsync();
+                articleKeywords[id] = keywords;
+            }
+
+            IQueryable<Article> articleQuery = this.context.Articles;
+            articleQuery = articleQuery.Where(x => articleIds.Contains(x.Id)).OrderByDescending(x => x. DateCreated);                    
+
+            var nToSkip = (paginationOptions.PageNumber - 1) * paginationOptions.Limit;
+            var articles = await articleQuery.Skip(nToSkip).Take(paginationOptions.Limit).ToListAsync();
+            
+            serviceResponse.Data = this.mapper.Map<List<Article>, List<ArticleCardDto>>(articles);
+
+            foreach (var article in serviceResponse.Data)
+            {
+                article.ArticleKeywords = this.mapper.Map<List<Keyword>, List<KeywordDto>>(articleKeywords[article.ArticleId]);
+            }
 
             return serviceResponse;
         }
