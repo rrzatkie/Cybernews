@@ -1,0 +1,15 @@
+<mat-toolbar>
+  <a [routerLink]="['/home']" [state]="{ categories: this.categories}">
+    <img mat-menu-item id="cybernewsLogo" src="../../../assets/img/logo/logo.png"/>
+  </a>
+  <button mat-button>Home</button>
+  <button mat-button [matMenuTriggerFor]="menu">Categories</button>
+  <mat-menu #menu="matMenu">
+      <button mat-menu-item *ngFor="let category of this.categories" [routerLink]="'/category/' + category.categoryId" routerLinkActive="active">
+        {{category.categoryNameToDisplay}}
+      </button>
+  </mat-menu>
+  <button mat-button>Archives</button>
+  <button mat-button>Contact</button>
+</mat-toolbar>
+

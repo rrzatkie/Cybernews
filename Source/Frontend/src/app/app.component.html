@@ -1,4 +1,6 @@
-<div>
-    <app-navbar style="margin-top: 500px;"></app-navbar>
-</div>
+<nav>
+  <app-navbar [categories]="this.categories"></app-navbar>
+</nav>
+<main>
 <router-outlet></router-outlet>
+</main>

@@ -1,21 +1,29 @@
-import { Component } from '@angular/core';
-import { NgbCarouselConfig } from '@ng-bootstrap/ng-bootstrap';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { Category } from './shared/article';
+import { ArticleRepositoryService } from './core/services/repository/article-repository.service';
+import { ArticleViewService } from './core/services/view/article-view.service';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss'],
-  providers: [NgbCarouselConfig]
+  styleUrls: ['./app.component.scss']
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   title = 'cybernews';
-  showNavigationArrows = false;
-  showNavigationIndicators = false;
-  images = [1055, 194, 368].map((n) => `https://picsum.photos/id/${n}/900/500`);
 
-  constructor(config: NgbCarouselConfig) {
-    // customize default values of carousels used by this component tree
-    config.showNavigationArrows = true;
-    config.showNavigationIndicators = true;
+  public categories: Category[];
+
+  constructor(
+    private readonly route: ActivatedRoute,
+    private readonly artcicleService: ArticleRepositoryService,
+    private readonly articleViewService: ArticleViewService
+    ) {
+  }
+  ngOnInit(): void {
+    this.artcicleService.getCategories().subscribe((data) => {
+      this.categories = data.data as Category[];
+      this.articleViewService.setCategories(this.categories);
+    });
   }
 }

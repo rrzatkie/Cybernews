@@ -5,35 +5,35 @@ export interface SlidesList{
 }
 
 export interface Slide{
-  articleId: string;
+  articleId: number;
   articleImgUrl: string;
   articleTitle: string;
   articleUrl: string;
 }
 
 export interface Category{
-  categoryId: string;
+  categoryId: number;
   categoryNameToDisplay: string;
   categorySlug: string;
 }
 
 export interface Keyword{
-  keywordId: string;
+  keywordId: number;
   keywordNameToDisplay: string;
   keywordSlug: string;
 }
 
 export interface ArticleCard{
-  articleId: string;
+  articleId: number;
   articleImgUrl: string;
   articleTitle: string;
   articleUrl: string;
   articleDate: string;
-  articleCategory: Category[];
+  articleCategories: Category[];
 }
 
 export interface ArticleDetails{
-  articleId: string;
+  articleId: number;
   articleImgUrl: string;
   articleTitle: string;
   articleUrl: string;
@@ -53,7 +53,7 @@ export enum ArticleCardType {
 }
 
 export interface PaginationOptions {
-  limit : number;
+  limit: number;
   pageNumber: number;
 }
 

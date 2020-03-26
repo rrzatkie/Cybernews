@@ -1,34 +1,26 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import { HomePageComponent } from './home-page/home-page.component';
-import { CategoryViewComponent } from './category-view/category-view.component';
 import { ArticleCardType } from './shared/article';
+import { CategoriesResolver } from './core/services/resolvers/categories.resolver';
+import { NewsCardsViewComponent } from './news/news-cards-view/news-cards-view.component';
+import { NewsFeaturedComponent } from './news/news-featured/news-featured.component';
 
 
 const routes: Routes = [
   {
     path: 'home',
-    component: HomePageComponent,
+    component: NewsFeaturedComponent
   },
   {
-    path: 'category/:categoryId',
-    component: CategoryViewComponent,
-    data: {type: ArticleCardType.Category}
+    path: 'category/:id',
+    component: NewsCardsViewComponent,
+    data: {cardType: ArticleCardType.Category}
   },
   {
-    path: 'keyword/:keywordId',
-    component: CategoryViewComponent,
-    data: {type: ArticleCardType.Keyword}
+    path: 'keyword/:id',
+    component: NewsCardsViewComponent,
+    data: {cardType: ArticleCardType.Keyword}
   },
-  {
-    path: '',
-    redirectTo: '/home',
-    pathMatch: 'full'
-  },
-  {
-    path: '**',
-    redirectTo: '/home'
-  }
 ];
 
 @NgModule({
