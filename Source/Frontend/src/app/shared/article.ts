@@ -41,7 +41,7 @@ export interface ArticleDetails{
 }
 
 export interface CybernewsApiResponse{
-  data: object[];
+  data: object;
   success: boolean;
   msg: string;
 }
