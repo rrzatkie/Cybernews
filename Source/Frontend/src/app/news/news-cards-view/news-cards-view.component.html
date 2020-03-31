@@ -1,13 +1,9 @@
-
-<div [ngStyle]="blurOnSelectionStyle">
-  <mat-grid-list class="news-cards-list" cols='3' gutterSize='50'>
-    <mat-grid-tile
-      [rowspan]="1"
-      [colspan]="1"
-      *ngFor="let article of this.articles">
+<div class="cards-list" [ngStyle]="blurOnSelectionStyle">
+  <div class="box">
+    <div *ngFor="let article of this.articles">
       <news-card [article]="article"></news-card>
-    </mat-grid-tile>
-  </mat-grid-list>
+    </div>
+  </div>
 </div>
-<router-outlet #outlet="outlet"></router-outlet>
 
+<router-outlet #outlet="outlet"></router-outlet>

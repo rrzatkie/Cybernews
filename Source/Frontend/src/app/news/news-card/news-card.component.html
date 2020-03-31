@@ -8,7 +8,7 @@
     </p>
     <mat-chip-list ariaOrientation='horizontal'>
       <mat-chip *ngFor="let category of this.article.articleCategories">
-        {{category.categorySlug}}
+        <a [routerLink]="['/category/' + category.categoryId]" >{{category.categorySlug}}</a>
       </mat-chip>
     </mat-chip-list>
   </mat-card-content>

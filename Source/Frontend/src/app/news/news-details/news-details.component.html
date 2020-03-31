@@ -1,30 +1,27 @@
-<mat-card *ngIf="this.articleDetails" style="max-width: 300px; position: absolute;
-left: 50%;
-top: 50%; transform: translate(-50%, -50%);">
-    <mat-card-header>
-      <p>{{this.articleDetails.articleTitle}}</p>
-    </mat-card-header>
-    <mat-card-content>
-      <img mat-card-image [src]="this.articleDetails.articleImgUrl" default="assets/img/slides/default-4.jpeg" [alt]="this.articleDetails.articleTitle">
-      <mat-chip-list>
-        <mat-chip *ngFor="let keyword of this.articleDetails.articleKeywords">
-          {{keyword.keywordSlug}}
-        </mat-chip>
-      </mat-chip-list>
-    </mat-card-content>
-    <mat-card-actions>
-      <a
-        [href]="this.articleDetails.articleUrl"
-        mat-flat-button
-        color="primary"
-        isRoundButton="true">
-          Read article
-      </a>
-      <button
-        mat-raised-button
-        (click)="closeDetails()"
-        color="warn">
-        Close
-      </button>
-    </mat-card-actions>
-  </mat-card>
+<mat-card *ngIf="this.articleDetails">
+  <mat-card-header>
+    <p>{{this.articleDetails.articleTitle}}</p>
+  </mat-card-header>
+  <mat-card-content>
+    <img mat-card-image [src]="this.articleDetails.articleImgUrl" default="assets/img/slides/default-4.jpeg" [alt]="this.articleDetails.articleTitle">
+    <mat-chip-list>
+      <mat-chip *ngFor="let keyword of this.articleDetails.articleKeywords">
+        {{keyword.keywordSlug}}
+      </mat-chip>
+    </mat-chip-list>
+  </mat-card-content>
+  <mat-card-actions>
+    <a [href]="this.articleDetails.articleUrl"
+      mat-flat-button
+      color="primary"
+      isRoundButton="true">
+        Read article
+    </a>
+    <button
+      mat-raised-button
+      (click)="closeDetails()"
+      color="warn">
+      Close
+    </button>
+  </mat-card-actions>
+</mat-card>

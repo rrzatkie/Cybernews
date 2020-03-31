@@ -1,9 +1,18 @@
-.news-card{
-  max-width: 330px;
-}
-
 .bottom-left {
   position: absolute;
   bottom: 8px;
   left: 16px;
+}
+
+mat-card{
+  max-width: 350px;
+  margin-bottom: 25px;
+}
+
+p,a{
+  font-family: 'Bebas Neue', cursive;
+  font-size: 20px;
+}
+a{
+  font-size: 14px;
 }

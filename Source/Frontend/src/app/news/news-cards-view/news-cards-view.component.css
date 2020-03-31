@@ -1,4 +1,10 @@
-mat-card {
-  width: calc(100% - 70px);
-  height: calc(100% - 70px);
+.box{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+}
+
+.cards-list{
+  background-color: #fde2da;
+  padding: 10px 0;
 }
