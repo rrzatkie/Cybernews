@@ -24,7 +24,7 @@ namespace Cybernews.CybernewsApi.Services
             this.mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        public async Task<ServiceResponse<List<ArticleCardDto>>> GetArticleCards(PaginationOptionsDto paginationOptions, QueryDto query)
+        public async Task<ServiceResponse<ArticleCardsListDto>> GetArticleCards(PaginationOptionsDto paginationOptions, QueryDto query)
         {
             switch (query.Type)
             {
@@ -33,15 +33,15 @@ namespace Cybernews.CybernewsApi.Services
                 case ArticleCardType.Keyword:
                     return await GetArticleCardsByKeyword(paginationOptions, query.ItemId);
                 default:
-                    var serviceResponse = new ServiceResponse<List<ArticleCardDto>>();
+                    var serviceResponse = new ServiceResponse<ArticleCardsListDto>();
                     serviceResponse.Message = "Unknown card type!";
                     return serviceResponse;
             }
         }
 
-        private async Task<ServiceResponse<List<ArticleCardDto>>> GetArticleCardsByCategory(PaginationOptionsDto paginationOptions, int categoryId)
+        private async Task<ServiceResponse<ArticleCardsListDto>> GetArticleCardsByCategory(PaginationOptionsDto paginationOptions, int categoryId)
         {
-            var serviceResponse = new ServiceResponse<List<ArticleCardDto>>();
+            var serviceResponse = new ServiceResponse<ArticleCardsListDto>();
 
             var articleCategoriesQuery = this.context.ArticleCategories;
             var articleIds = await articleCategoriesQuery.Where(x => x.CategoryId == categoryId).Select(x => x.ArticleId).ToListAsync();
@@ -61,19 +61,25 @@ namespace Cybernews.CybernewsApi.Services
             var nToSkip = (paginationOptions.PageNumber - 1) * paginationOptions.Limit;
             var articles = await articleQuery.Skip(nToSkip).Take(paginationOptions.Limit).ToListAsync();
             
-            serviceResponse.Data = this.mapper.Map<List<Article>, List<ArticleCardDto>>(articles);
+            serviceResponse.Data =new ArticleCardsListDto
+            { 
+                ArticleCards = this.mapper.Map<List<Article>, List<ArticleCardDto>>(articles)
+            };
 
-            foreach (var article in serviceResponse.Data)
+            foreach (var article in serviceResponse.Data.ArticleCards)
             {
                 article.ArticleCategories = this.mapper.Map<List<Category>, List<CategoryDto>>(articleCategories[article.ArticleId]);
             }
 
+            serviceResponse.Data.QueryItemId = categoryId;
+            serviceResponse.Data.Count = await articleQuery.CountAsync();
+
             return serviceResponse;
         }
 
-        private async Task<ServiceResponse<List<ArticleCardDto>>> GetArticleCardsByKeyword(PaginationOptionsDto paginationOptions, int keywordId)
+        private async Task<ServiceResponse<ArticleCardsListDto>> GetArticleCardsByKeyword(PaginationOptionsDto paginationOptions, int keywordId)
         {
-            var serviceResponse = new ServiceResponse<List<ArticleCardDto>>();
+            var serviceResponse = new ServiceResponse<ArticleCardsListDto>();
 
             var articleKeywordsQuery = this.context.ArticleKeywords;
             var articleIds = await articleKeywordsQuery.Where(x => x.KeywordId == keywordId).Select(x => x.ArticleId).ToListAsync();
@@ -93,12 +99,15 @@ namespace Cybernews.CybernewsApi.Services
             var nToSkip = (paginationOptions.PageNumber - 1) * paginationOptions.Limit;
             var articles = await articleQuery.Skip(nToSkip).Take(paginationOptions.Limit).ToListAsync();
             
-            serviceResponse.Data = this.mapper.Map<List<Article>, List<ArticleCardDto>>(articles);
+            serviceResponse.Data.ArticleCards = this.mapper.Map<List<Article>, List<ArticleCardDto>>(articles);
 
-            foreach (var article in serviceResponse.Data)
+            foreach (var article in serviceResponse.Data.ArticleCards)
             {
                 article.ArticleKeywords = this.mapper.Map<List<Keyword>, List<KeywordDto>>(articleKeywords[article.ArticleId]);
             }
+
+            serviceResponse.Data.QueryItemId = keywordId;
+            serviceResponse.Data.Count = await articleQuery.CountAsync();
 
             return serviceResponse;
         }
