@@ -1,6 +1,7 @@
 
 export interface SlidesList{
   slides: Slide[];
+  queryItemId: number;
   count: number;
 }
 
@@ -30,6 +31,12 @@ export interface ArticleCard{
   articleUrl: string;
   articleDate: string;
   articleCategories: Category[];
+}
+
+export interface ArticleCardsList{
+  articleCards: ArticleCard[];
+  count: number;
+  queryItemId: number;
 }
 
 export interface ArticleDetails{

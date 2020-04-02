@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { ArticleCard, ArticleCardType, ArticleDetails } from 'src/app/shared/article';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { ArticleCard, ArticleCardType, ArticleDetails, ArticleCardsList } from 'src/app/shared/article';
 import { ArticleRepositoryService } from 'src/app/core/services/repository/article-repository.service';
 import { ActivatedRoute } from '@angular/router';
 import { ArticleViewService } from 'src/app/core/services/view/article-view.service';
@@ -14,6 +14,7 @@ export class NewsCardsViewComponent implements OnInit {
   public articles: ArticleCard[];
   public cardType: ArticleCardType = ArticleCardType.Category;
   public queryItemId = 1;
+  public title = "Category";
 
   public selectedArticleDetails: ArticleDetails;
   public isAnySelected: boolean = false;
@@ -23,21 +24,25 @@ export class NewsCardsViewComponent implements OnInit {
   constructor(
     private readonly articleRepositoryService: ArticleRepositoryService,
     private readonly route: ActivatedRoute,
-    private readonly articleViewService: ArticleViewService
+    private readonly articleViewService: ArticleViewService,
+    private readonly ref: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
-      this.route.data.subscribe( (data) => {
-        this.cardType = data.cardType;
-      });
+    this.route.data.subscribe(data => {
+      const response = data.response.data as ArticleCardsList;
+      this.articles = response.articleCards;
+      this.title = this.articles[0].articleCategories.find( x => x.categoryId === response.queryItemId).categoryNameToDisplay;
+    });
 
-      this.articleViewService.getArticleDetailsVisibleState().subscribe((state) => {
-        this.isAnySelected = state;
-        this.blurOnSelectionStyle = state ? {'filter': 'blur(8px)'} : {'filter': 'blur(0px)'}
-        });
-
-      this.articleRepositoryService.getArticleCards(12, 1, this.cardType, this.queryItemId).subscribe( (response) => {
-        this.articles = response.data as ArticleCard[];
+    this.articleViewService.getArticleDetailsVisibleState().subscribe((state) => {
+      this.isAnySelected = state;
+      this.blurOnSelectionStyle = state ? {'filter': 'blur(8px)'} : {'filter': 'blur(0px)'};
       });
-   }
+  }
+
+  detectChanges() {
+    this.ref.detectChanges();
+  }
+
 }

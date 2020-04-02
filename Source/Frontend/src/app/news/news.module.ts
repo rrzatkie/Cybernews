@@ -17,6 +17,8 @@ import { MatCardModule } from '@angular/material/card';
 import { RouterModule } from '@angular/router';
 import { MatChipsModule } from '@angular/material/chips';
 import { NewsDetailsComponent } from './news-details/news-details.component';
+import { NewsTabsComponent } from './news-tabs/news-tabs.component';
+import { MatchHeightDirective } from './news-cards-view/matchHeight.directive';
 
 
 @NgModule({
@@ -38,7 +40,8 @@ import { NewsDetailsComponent } from './news-details/news-details.component';
     NewsSliderComponent,
     RouterModule,
     NewsFeaturedComponent,
-    NewsDetailsComponent
+    NewsDetailsComponent,
+    NewsTabsComponent
   ],
   declarations: [
     NewsCardComponent,
@@ -46,7 +49,10 @@ import { NewsDetailsComponent } from './news-details/news-details.component';
     NewsSliderComponent,
     NewsFeaturedComponent,
     DefaultImageDirective,
-    NewsDetailsComponent],
+    MatchHeightDirective,
+    NewsDetailsComponent,
+    NewsTabsComponent
+  ],
   providers: [],
 })
 export class NewsModule { }

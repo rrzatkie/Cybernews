@@ -1,10 +1,9 @@
-
 <p>Latest news: </p>
 <mat-tab-group>
   <div *ngFor="let item of this.slides | keyvalue">
     <div *ngIf="item.value.length > 0">
       <!-- <a mat-flat-button [routerLink]="'/category/' + item.key" >{{getCategoryName(item.key)}}</a> -->
-      <mat-tab [label]="getCategoryName(item.key)"><news-slider [slides]="item.value"></news-slider></mat-tab>
+      <mat-tab class="tabs" [label]="getCategoryName(item.key)"><news-slider [slides]="item.value"></news-slider></mat-tab>
     </div>
   </div>
 </mat-tab-group>

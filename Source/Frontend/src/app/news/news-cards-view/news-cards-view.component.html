@@ -1,7 +1,12 @@
+<div class="cards-header">
+  <div class="title">
+    <p>{{this.title}}</p>
+  </div>
+</div>
 <div class="cards-list" [ngStyle]="blurOnSelectionStyle">
-  <div class="box">
+  <div matchHeight matchClass="card" class="box">
     <div *ngFor="let article of this.articles">
-      <news-card [article]="article"></news-card>
+      <news-card [article]="article" (imgLoadingStatus)="detectChanges()"></news-card>
     </div>
   </div>
 </div>

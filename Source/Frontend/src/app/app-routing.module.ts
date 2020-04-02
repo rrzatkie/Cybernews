@@ -5,6 +5,7 @@ import { CategoriesResolver } from './core/services/resolvers/categories.resolve
 import { NewsCardsViewComponent } from './news/news-cards-view/news-cards-view.component';
 import { NewsFeaturedComponent } from './news/news-featured/news-featured.component';
 import { NewsDetailsComponent } from './news/news-details/news-details.component';
+import { CardsResolver } from './core/services/resolvers/cards.resolver';
 
 
 const routes: Routes = [
@@ -15,6 +16,7 @@ const routes: Routes = [
   {
     path: 'category/:id',
     component: NewsCardsViewComponent,
+    resolve: {response: CardsResolver},
     data: {cardType: ArticleCardType.Category},
     children: [
       {
@@ -26,6 +28,7 @@ const routes: Routes = [
   {
     path: 'keyword/:id',
     component: NewsCardsViewComponent,
+    resolve: {response: CardsResolver},
     data: {cardType: ArticleCardType.Keyword},
     children: [
       {

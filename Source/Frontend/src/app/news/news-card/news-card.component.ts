@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { ArticleCard } from 'src/app/shared/article';
 import { ArticleViewService } from 'src/app/core/services/view/article-view.service';
 
@@ -10,12 +10,17 @@ import { ArticleViewService } from 'src/app/core/services/view/article-view.serv
 
 export class NewsCardComponent implements OnInit {
   @Input() article: ArticleCard;
+  @Output() imgLoadingStatus = new EventEmitter();
 
   constructor(
     private readonly articleViewService: ArticleViewService
   ) { }
 
   ngOnInit() {
+  }
+
+  imgLoaded(){
+    this.imgLoadingStatus.emit(true);
   }
 
   seeDetails(){

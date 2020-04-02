@@ -1,9 +1,10 @@
-<nav>
-  <app-navbar [categories]="this.categories"></app-navbar>
+<nav class="container-fluid header">
+    <app-navbar [categories]="this.categories"></app-navbar>
 </nav>
-<main class="content">
-    <router-outlet></router-outlet>
+<main class="container content">
+  <router-outlet></router-outlet>
 </main>
-<footer>
-
+<footer class="container-fluid footer">
+    <p>© Copyright <a [routerLink]="['/home']">Cybernews</a> </p>
 </footer>
+

@@ -1,7 +1,26 @@
 mat-card{
   max-width: 300px;
-  position: absolute;
+  position: fixed;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%)
+}
+
+p,a, button{
+  font-family: 'Bebas Neue', cursive;
+  font-size: 20px;
+}
+
+mat-card-content p,a, button{
+  font-family: 'Bebas Neue', cursive;
+  font-size: 20px;
+}
+
+mat-card-content a,p{
+  font-size: 14px;
+  color: black;
+}
+
+mat-card-content a:hover{
+  color: white;
 }
