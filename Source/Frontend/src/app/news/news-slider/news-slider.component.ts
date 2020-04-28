@@ -6,7 +6,7 @@ import { NgbCarouselConfig } from '@ng-bootstrap/ng-bootstrap';
 @Component({
   selector: 'news-slider',
   templateUrl: './news-slider.component.html',
-  styleUrls: ['./news-slider.component.css'],
+  styleUrls: ['./news-slider.component.scss'],
   providers: [NgbCarouselConfig]
 })
 

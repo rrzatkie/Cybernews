@@ -7,7 +7,7 @@ import { ArticleViewService } from 'src/app/core/services/view/article-view.serv
 @Component({
   selector: 'app-news-cards',
   templateUrl: './news-cards-view.component.html',
-  styleUrls: ['./news-cards-view.component.css']
+  styleUrls: ['./news-cards-view.component.scss']
 })
 
 export class NewsCardsViewComponent implements OnInit {
@@ -32,7 +32,15 @@ export class NewsCardsViewComponent implements OnInit {
     this.route.data.subscribe(data => {
       const response = data.response.data as ArticleCardsList;
       this.articles = response.articleCards;
-      this.title = this.articles[0].articleCategories.find( x => x.categoryId === response.queryItemId).categoryNameToDisplay;
+      switch (this.route.snapshot.data.cardType as ArticleCardType) {
+        case ArticleCardType.Category:
+          this.title = this.articles[0].articleCategories.find( x => x.categoryId === response.queryItemId).categoryNameToDisplay;
+          break;
+        case ArticleCardType.Keyword:
+          this.title = this.articles[0].articleKeywords.find( x => x.keywordId === response.queryItemId).keywordNameToDisplay;
+        default:
+          break;
+      }
     });
 
     this.articleViewService.getArticleDetailsVisibleState().subscribe((state) => {

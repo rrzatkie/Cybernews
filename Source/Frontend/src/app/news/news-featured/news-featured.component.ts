@@ -8,7 +8,7 @@ import { KeyValue } from '@angular/common';
 @Component({
   selector: 'news-featured',
   templateUrl: './news-featured.component.html',
-  styleUrls: ['./news-featured.component.css']
+  styleUrls: ['./news-featured.component.scss']
 })
 
 export class NewsFeaturedComponent implements OnInit {

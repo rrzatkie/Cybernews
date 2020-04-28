@@ -4,7 +4,9 @@
         <img [src]="slide.articleImgUrl" default="assets/img/slides/default-4.jpeg" alt="slide.articleTitle"  height="500" width="900">
       </div>
       <div class="carousel-caption">
-        <h3>{{slide.articleTitle}}</h3>
+        <a [href]="slide.articleUrl">
+          <p>{{slide.articleTitle}}</p>
+        </a>
       </div>
   </ng-template>
 </ngb-carousel>

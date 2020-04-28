@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, OnDestroy } from '@angular/core';
-import { ArticleDetails } from 'src/app/shared/article';
+import { ArticleDetails, ArticleCardType } from 'src/app/shared/article';
 import { ArticleRepositoryService } from 'src/app/core/services/repository/article-repository.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -31,10 +31,14 @@ export class NewsDetailsComponent implements OnInit, OnDestroy {
   });
   }
 
-  closeDetails() {
+  handleCloseButton() {
     this.articleViewService.setArticleDetailsVisibleState(false);
-    let url = `${this.route.parent.snapshot.url[0].toString()}/${this.route.parent.snapshot.url[1].toString()}`;
+    const url = `${this.route.parent.snapshot.url[0].toString()}/${this.route.parent.snapshot.url[1].toString()}`;
     this.router.navigateByUrl(url);
+  }
+
+  handleRouteLink() {
+    this.articleViewService.setArticleDetailsVisibleState(false);
   }
 
   ngOnDestroy() {

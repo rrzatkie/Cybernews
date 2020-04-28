@@ -6,7 +6,9 @@
     <img mat-card-image [src]="this.articleDetails.articleImgUrl" default="assets/img/slides/default-4.jpeg" [alt]="this.articleDetails.articleTitle">
     <mat-chip-list>
       <mat-chip *ngFor="let keyword of this.articleDetails.articleKeywords">
-        {{keyword.keywordSlug}}
+        <a [routerLink]="['/keyword/' + keyword.keywordId]" (click)="handleRouteLink()">
+          {{keyword.keywordSlug}}
+        </a>
       </mat-chip>
     </mat-chip-list>
   </mat-card-content>
@@ -19,7 +21,7 @@
     </a>
     <button
       mat-button
-      (click)="closeDetails()"
+      (click)="handleCloseButton()"
       color="warn">
       Close
     </button>

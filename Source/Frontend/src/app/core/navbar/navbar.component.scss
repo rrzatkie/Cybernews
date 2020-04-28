@@ -1,0 +1,40 @@
+@import "../../../assets/scss/variables.scss";
+
+#cybernewsLogo{
+  background: none;
+}
+
+mat-toolbar {
+  background-color: $stormColour;
+  color: white;
+  height: 100px;
+  padding-left: 0;
+
+  .logo img{
+    height: 100px;
+    border: $leatherColour solid 2px
+  }
+
+  button,a {
+    font-family: 'Alegreya Sans SC', sans-serif;
+    font-size: 18px;;
+    letter-spacing: 5px;
+    outline-color: $leatherColour;
+  }
+
+  button:hover,a:hover{
+    color: $leatherColour;
+  }
+
+  button:focus, a:focus, button:active {
+    border: $leatherColour;
+    border-width: 10px;
+  }
+
+  .toolbar-items {
+    position: absolute;
+    right: 0px;
+    padding: 10px 25px;
+  }
+}
+

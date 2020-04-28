@@ -1,14 +1,15 @@
-<div class="cards-header">
-  <div class="title">
-    <p>{{this.title}}</p>
+<div class="cards">
+  <div class="cards-header">
+    <div class="title">
+      <p class="title-content">{{this.title}}</p>
+    </div>
   </div>
-</div>
-<div class="cards-list" [ngStyle]="blurOnSelectionStyle">
-  <div matchHeight matchClass="card" class="box">
-    <div *ngFor="let article of this.articles">
-      <news-card [article]="article" (imgLoadingStatus)="detectChanges()"></news-card>
+  <div class="cards-list" [ngStyle]="blurOnSelectionStyle">
+    <div matchHeight matchClass="card" class="box">
+      <div *ngFor="let article of this.articles">
+        <news-card [article]="article" (imgLoadingStatus)="detectChanges()"></news-card>
+      </div>
     </div>
   </div>
 </div>
-
 <router-outlet #outlet="outlet"></router-outlet>

@@ -31,6 +31,7 @@ export interface ArticleCard{
   articleUrl: string;
   articleDate: string;
   articleCategories: Category[];
+  articleKeywords: Keyword[];
 }
 
 export interface ArticleCardsList{

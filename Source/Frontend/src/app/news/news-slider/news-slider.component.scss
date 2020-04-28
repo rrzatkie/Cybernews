@@ -1,6 +1,6 @@
 ngb-carousel {
-  max-width: 700px;
-  margin: 50px auto;
+  max-width: 80%;
+  margin: 5px auto 1px auto;
 }
 
 ngb-carousel img {
@@ -42,4 +42,19 @@ ngb-carousel {
 
 .carousel-indicators{
   z-index: 20;
+}
+
+.carousel-caption {
+  width: 100%;
+  left: 0px;
+  background-color: rgba(0, 0, 0, 0.473);
+  padding: 10px 10px;
+
+  a,p,a:hover,p:hover{
+    font-family: 'Baloo Thambi 2', cursive;
+    font-size: 24px;
+    letter-spacing: 2px;
+    color: white;
+    text-decoration: none;
+  }
 }
