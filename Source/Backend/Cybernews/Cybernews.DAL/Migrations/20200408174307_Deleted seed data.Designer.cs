@@ -4,14 +4,16 @@ using Cybernews.DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Cybernews.DAL.Migrations
 {
     [DbContext(typeof(CybernewsContext))]
-    partial class CybernewsContextModelSnapshot : ModelSnapshot
+    [Migration("20200408174307_Deleted seed data")]
+    partial class Deletedseeddata
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

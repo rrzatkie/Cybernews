@@ -1,3 +1,4 @@
+using System.Data;
 using System.IO;
 using System;
 using System.Collections.Generic;
@@ -61,7 +62,7 @@ namespace Cybernews.CybernewsApi.Services
             var nToSkip = (paginationOptions.PageNumber - 1) * paginationOptions.Limit;
             var articles = await articleQuery.Skip(nToSkip).Take(paginationOptions.Limit).ToListAsync();
             
-            serviceResponse.Data =new ArticleCardsListDto
+            serviceResponse.Data = new ArticleCardsListDto
             { 
                 ArticleCards = this.mapper.Map<List<Article>, List<ArticleCardDto>>(articles)
             };
@@ -99,7 +100,10 @@ namespace Cybernews.CybernewsApi.Services
             var nToSkip = (paginationOptions.PageNumber - 1) * paginationOptions.Limit;
             var articles = await articleQuery.Skip(nToSkip).Take(paginationOptions.Limit).ToListAsync();
             
-            serviceResponse.Data.ArticleCards = this.mapper.Map<List<Article>, List<ArticleCardDto>>(articles);
+            serviceResponse.Data = new ArticleCardsListDto
+            {
+                ArticleCards = this.mapper.Map<List<Article>, List<ArticleCardDto>>(articles)
+            };
 
             foreach (var article in serviceResponse.Data.ArticleCards)
             {
@@ -159,6 +163,88 @@ namespace Cybernews.CybernewsApi.Services
 
             articles = articles.OrderByDescending(x => x. DateCreated).Take(5).ToList();
             serviceResponse.Data = this.mapper.Map<List<Article>, List<SlideDto>>(articles);
+
+            return serviceResponse;
+        }
+
+        public async Task<ServiceResponse<List<int>>> AddArticles(ArticleDto[] articleDtos)
+        {
+            var serviceResponse = new ServiceResponse<List<int>>()
+            {
+                Data = new List<int>()
+            };
+            
+            var articleQuery = this.context.Articles;
+            
+            var r = 0;
+            var alreadyExists = false;
+            foreach (var articleDto in articleDtos)
+            {
+                var article = this.mapper.Map<Article>(articleDto);
+                alreadyExists = await articleQuery.AnyAsync(x => (x.Url == article.Url) || (x.Title == article.Title)); 
+                
+                if(!alreadyExists) await articleQuery.AddAsync(article); else continue;
+                
+                var categoryQuery = this.context.Categories;
+                var articleCategoriesQuery = this.context.ArticleCategories;
+                var categories = this.mapper.Map<List<string>, List<Category>>(articleDto.Categories);
+                foreach (var category in categories)
+                {
+                    var categoryEntity = category; 
+                    alreadyExists = await categoryQuery.AnyAsync(x => x.Slug == category.Slug); 
+                    if(!alreadyExists)
+                    {
+                        await categoryQuery.AddAsync(category);
+                    }
+                    else
+                    {
+                        categoryEntity = await categoryQuery.FirstOrDefaultAsync(x => x.Slug == category.Slug); 
+                    }
+                    
+                    var articleCategory = new ArticleCategory()
+                    {
+                        Article = article,
+                        Category = categoryEntity 
+                    };
+                    
+                    await articleCategoriesQuery.AddAsync(articleCategory);
+                }
+
+                var keywordQuery = this.context.Keywords;
+                var articleKeywordsQuery = this.context.ArticleKeywords;
+                var keywords = this.mapper.Map<List<string>, List<Keyword>>(articleDto.Keywords);
+                foreach (var keyword in keywords)
+                {
+                    var keywordEntity = keyword; 
+                    alreadyExists = await keywordQuery.AnyAsync(x => (x.Slug == keyword.Slug) && (x.NameToDisplay == keyword.NameToDisplay)); 
+                    if(!alreadyExists)
+                    {
+                        await keywordQuery.AddAsync(keyword);
+                    }
+                    else
+                    {
+                        keywordEntity = await keywordQuery.FirstOrDefaultAsync(x => x.Slug == keyword.Slug); 
+                    }
+
+                    var articleKeyword = new ArticleKeyword()
+                    {
+                        Article = article,
+                        Keyword = keywordEntity 
+                    };
+
+                    if(!article.ArticleKeywords.Any(x => x.Keyword == articleKeyword.Keyword)) await articleKeywordsQuery.AddAsync(articleKeyword); else continue;
+                }
+
+                try {
+                    r = await this.context.SaveChangesAsync();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(article);
+                }
+            }
+            
+            
 
             return serviceResponse;
         }

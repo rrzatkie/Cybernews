@@ -11,6 +11,6 @@ namespace Cybernews.CybernewsApi.Services
         Task<ServiceResponse<Dtos.ArticleDetailsDto>> GetArticleDetails(int articleId);
         Task<ServiceResponse<List<Dtos.SlideDto>>> GetSlides(int categoryId);
         Task<ServiceResponse<List<Dtos.CategoryDto>>> GetCategories();
-
+        Task<ServiceResponse<List<int>>> AddArticles(ArticleDto[] articles);
     }
 }

@@ -45,5 +45,12 @@ namespace Cybernews.CybernewsApi.Controllers
         {
             return Ok(await articlesService.GetSlides(id));
         }
+
+
+        [HttpPost("article/add")]
+        public async Task<ActionResult> AddArticles(ArticleDto[] articles)
+        {
+            return Ok(await articlesService.AddArticles(articles));
+        }
     }
 }

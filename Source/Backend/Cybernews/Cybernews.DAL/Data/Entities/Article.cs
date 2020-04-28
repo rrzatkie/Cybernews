@@ -13,7 +13,7 @@ namespace Cybernews.DAL.Data.Entities
         public int NoOfLikes { get; set; }
         public string ImageUrl { get; set; }
         public string Url { get; set; }
-        public ICollection<ArticleKeyword> ArticleKeywords { get; set; }
-        public ICollection<ArticleCategory> ArticleCategories { get; set; }
+        public ICollection<ArticleKeyword> ArticleKeywords { get; set; } = new List<ArticleKeyword>();
+        public ICollection<ArticleCategory> ArticleCategories { get; set; } = new List<ArticleCategory>();
     }
 }
