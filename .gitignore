@@ -6,3 +6,9 @@ Notebooks/logs
 .vscode
 **/bin/**
 **/obj/**
+/Notebooks/Untitled.ipynb
+/Source/Backend/Cybernews/CybernewsML/pickles/
+/Source/Backend/Cybernews/CybernewsML/shared/__pycache__/
+/Source/Backend/Cybernews/CybernewsML/.ipynb_checkpoints/
+/Source/Backend/Cybernews/CybernewsML/logs/
+/Source/Backend/Cybernews/CybernewsML/old/.ipynb_checkpoints/
