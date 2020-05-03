@@ -3,17 +3,22 @@ import pickle
 from datetime import datetime
 from enum import Enum
 
+import numpy as np
 import pandas as pd
 import multiprocessing as mp
+
 import textacy
 from textacy import preprocessing, ke
 from textacy.vsm.vectorizers import Vectorizer
 import spacy
+
 from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
-from gensim import utils, models
+
+from gensim import utils, matutils, models
 from gensim.parsing.preprocessing import preprocess_string
 from gensim.corpora import Dictionary
+
 
 
 from shared.file_helper import file_helper
@@ -34,10 +39,12 @@ class gensim_corpus:
 class nlp:
     def __init__(self, logger):
         self.logger = logger
+        self.stop_words = None
+
         self.df = None
         self.df_result = None
-        
         self.texts = None
+        self.stop_words = None
 
         self.spacy = None
         self.spacy_docs = None
@@ -51,12 +58,13 @@ class nlp:
         self.gensim_trigram_model= None
         self.gensim_corpus_tfidf = None
         self.gensim_w2v_model = None
+        self.gensim_docs_vectors_w2v = None
 
     def gensim_pipeline_bow(self, texts):
         stemmer = SnowballStemmer('english')
 
         docs = [
-            [stemmer.stem(word) for word in utils.tokenize(doc)]
+            [stemmer.stem(word) for word in utils.tokenize(doc) if word not in self.stop_words]
             for doc in texts
         ]
         bigram_model = models.Phrases(docs)
@@ -72,7 +80,7 @@ class nlp:
 
         self.gensim_docs = docs
         self.gensim_bigram_model = bigram_model
-        self.gensim_trigram_mdoel = trigram_model
+        self.gensim_trigram_model = trigram_model
         self.gensim_dictionary = dictionary
         self.gensim_corpus = corpus
 
@@ -88,6 +96,21 @@ class nlp:
         self.gensim_corpus_tfidf = corpus_tfidf
 
         return corpus_tfidf
+    
+    def gensim_transform_w2v(self, w2v_model, docs, corpus_tfidf):
+        word_vectors = np.array([
+            [w2v_model[self.gensim_dictionary.id2token[w_id]]*value for w_id, value in doc_tfidf] 
+            for doc_tfidf in corpus_tfidf
+        ])
+
+        doc_vectors = [
+            np.mean(doc, axis=0)
+            for doc in word_vectors
+        ]
+
+        self.gensim_docs_vectors_w2v = doc_vectors
+
+        return doc_vectors
 
     def spacy_pipeline_bow(self, texts):
         docs = []
@@ -190,9 +213,17 @@ class nlp:
         
         s1 = pd.Series(name='text_lemmatized_spacy', data=self.spacy_docs)
         s2 = pd.Series(name='text_keywords_spacy', data=self.spacy_keywords)
-        s3 = pd.Series(name='text_stemmed_gensim', data=self.spacy_docs)
+        # s3 = pd.Series(name='text_stemmed_gensim', data=self.spacy_docs)
+        s4 = pd.Series(name='corpus_tfidf_gensim', data=[
+                sparse_vector for sparse_vector in self.gensim_corpus_tfidf
+            ]
+        )
+        s5 = pd.Series(name='corpus_w2v_gensim', data=[
+                doc_vector for doc_vector in self.gensim_docs_vectors_w2v
+            ]
+        )
         
-        df_result = pd.concat([df_result, s1, s2, s3], axis=1)
+        df_result = pd.concat([df_result, s1, s2, s4, s5], axis=1)
         
         self.logger.info("Merged results to dataframe.")
         self.df_result = df_result
@@ -201,8 +232,7 @@ class nlp:
 
     def init_spacy(self, model_name='en_core_web_md'):
         self.spacy = spacy.load(model_name)
-        nltk_stopwords = stopwords.words('english')
-        for word in nltk_stopwords:
+        for word in self.stop_words:
             self.spacy.vocab[word].is_stop = True
  
     def init_gensim_w2v(self, docs):
@@ -221,8 +251,6 @@ class nlp:
 
         return model
 
-    def gensim_transform_w2v(self, model, docs, docs_tfidf):
-        pass
 
     def load_state(self, mode):
         helper = file_helper(self.logger)
@@ -230,9 +258,10 @@ class nlp:
         
         self.df = helper.load_state(class_name, 'df', file_helper.VarType.DATAFRAME)
         self.texts = helper.load_state(class_name, 'texts', file_helper.VarType.OBJECT)
+        self.stop_words = helper.load_state(class_name, 'stop_words', file_helper.VarType.OBJECT, path='data/downloaded/stopwords')
 
         if(mode in [NlpMode.SPACY, NlpMode.ALL]): 
-            # Spacy object has to be pickled in other way
+            # TODO: Spacy object has to be pickled in other way
             # self.spacy = helper.load_state(class_name, 'spacy', file_helper.VarType.OBJECT)
 
             self.spacy_docs = helper.load_state(class_name, 'spacy_docs', file_helper.VarType.OBJECT)
@@ -244,16 +273,17 @@ class nlp:
             self.gensim_corpus = helper.load_state(class_name, 'gensim_corpus', file_helper.VarType.OBJECT) 
             self.gensim_dictionary = helper.load_state(class_name, 'gensim_dictionary', file_helper.VarType.OBJECT) 
             self.gensim_bigram_model = helper.load_state(class_name, 'gensim_bigram_model', file_helper.VarType.OBJECT) 
-            self.gensim_trigram_mdoel= helper.load_state(class_name, 'gensim_trigram_model', file_helper.VarType.OBJECT) 
+            self.gensim_trigram_model= helper.load_state(class_name, 'gensim_trigram_model', file_helper.VarType.OBJECT) 
             self.gensim_corpus_tfidf = helper.load_state(class_name, 'gensim_corpus_tfidf', file_helper.VarType.OBJECT) 
             self.gensim_w2v_model = helper.load_state(class_name, 'gensim_w2v_model', file_helper.VarType.OBJECT) 
+            self.gensim_docs_vectors_w2v = helper.load_state(class_name, 'gensim_docs_vectors_w2v', file_helper.VarType.OBJECT) 
 
     def save_state(self, mode):
         helper = file_helper(self.logger)
         class_name = 'nlp'
 
         if(mode in [NlpMode.SPACY, NlpMode.ALL]): 
-            # Spacy object has to be pickled in other way
+            # TODO: Spacy object has to be pickled in other way
             # if self.spacy is not None: helper.save_state(class_name, 'spacy', self.spacy, file_helper.VarType.OBJECT)
             
             if self.spacy_docs is not None: helper.save_state(class_name, 'spacy_docs', self.spacy_docs, file_helper.VarType.OBJECT)
@@ -264,14 +294,16 @@ class nlp:
             if self.gensim_corpus is not None: helper.save_state(class_name, 'gensim_corpus', self.gensim_corpus, file_helper.VarType.OBJECT) 
             if self.gensim_dictionary is not None: helper.save_state(class_name, 'gensim_dictionary', self.gensim_dictionary, file_helper.VarType.OBJECT) 
             if self.gensim_bigram_model is not None: helper.save_state(class_name, 'gensim_bigram_model', self.gensim_bigram_model, file_helper.VarType.OBJECT) 
-            if self.gensim_trigram_model is not None: helper.save_state(class_name, 'gensim_trigram_model', self.gensim_trigram_model.file_helper.VarType.OBJECT) 
+            if self.gensim_trigram_model is not None: helper.save_state(class_name, 'gensim_trigram_model', self.gensim_trigram_model, file_helper.VarType.OBJECT) 
             if self.gensim_corpus_tfidf is not None: helper.save_state(class_name, 'gensim_corpus_tfidf', self.gensim_corpus_tfidf, file_helper.VarType.OBJECT) 
             if self.gensim_w2v_model is not None: helper.save_state(class_name, 'gensim_w2v_model', self.gensim_w2v_model, file_helper.VarType.OBJECT) 
+            if self.gensim_docs_vectors_w2v is not None: helper.save_state(class_name, 'gensim_docs_vectors_w2v', self.gensim_docs_vectors_w2v, file_helper.VarType.OBJECT) 
 
-        path = 'data/after-nlp-pipeline/after-nlp-pipeline-{}.csv'.format(datetime.now().strftime("%m-%d-%Y-%H-%M-%S"))
-        if self.spacy is not None: helper.save_df_to_csv(self.df_result, path)
+        path = 'data/04_nlp_pipeline/04_nlp_pipeline-{}.csv'.format(datetime.now().strftime("%m-%d-%Y-%H-%M-%S"))
+        if self.df_result is not None: helper.save_df_to_csv(self.df_result, path)
+        if self.df_result is not None: helper.save_state(class_name, 'df_result', self.df_result, file_helper.VarType.DATAFRAME)
 
-    def build(self, mode, path='data/after-cleaning'):
+    def build(self, mode, path='data/03_cleaninig_entries'):
         helper = file_helper(self.logger)
 
         try:
@@ -283,12 +315,13 @@ class nlp:
 
             if(mode in [NlpMode.SPACY, NlpMode.ALL]):
                 if self.spacy is None: self.init_spacy('en_core_web_md')
-                if self.spacy_docs is None: self.spacy_pipeline_bow(self.texts[0:2])
+                if self.spacy_docs is None: self.spacy_pipeline_bow(self.texts)
                 if self.spacy_docs_tfidf is None: self.spacy_transform_tfidf(self.spacy_docs)
             if(mode in [NlpMode.GENSIM, NlpMode.ALL]):
                 if self.gensim_corpus is None: self.gensim_pipeline_bow(self.texts)
-                if self.gensim_corpus_tfidf is None: self.gensim_transform_tfidf(self.gensim_corpus)
+                if self.gensim_corpus_tfidf is None: self.gensim_transform_tfidf(self.gensim_corpus, self.gensim_dictionary)
                 if self.gensim_w2v_model is None: self.init_gensim_w2v(self.gensim_docs)
+                if self.gensim_docs_vectors_w2v is None: self.gensim_transform_w2v(self.gensim_w2v_model, self.gensim_docs, self.gensim_corpus_tfidf)
 
             if self.df_result is None: self.save_results()
         except :
@@ -303,5 +336,5 @@ class nlp:
         return self
 
 if __name__=='__main__':
-    helper = nlp()
-    helper.build(NlpMode.ALL)
+    n = nlp()
+    n.build(NlpMode.ALL)

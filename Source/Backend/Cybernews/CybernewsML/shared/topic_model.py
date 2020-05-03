@@ -15,6 +15,7 @@ class topic_model:
         self.logger = logger
         self.corpus = None
         self.df = None
+        
         self.dictionary = None
         self.tfidf = None
         self.corpus_tfidf = None
@@ -108,8 +109,10 @@ class topic_model:
             self.lda_model = models.LdaModel.load(pickle_path)
 
         
-    def build(self, full=True):
-        self.load_df('data/after-nlp-pipeline')
+    def build(self, load_path='data/04_nlp_pipeline', save_path='data\05_topic_modeling'):
+        helper = file_helper(self.logger)
+
+        if self.df is None: self.load_df(load_path)
         self.preprocess()
         self.build_tfidf_model()
         self.lda()

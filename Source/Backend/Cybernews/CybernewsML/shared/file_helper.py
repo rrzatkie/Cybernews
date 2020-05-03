@@ -58,7 +58,7 @@ class file_helper:
             self.logger.debug("'{}' does not exist".format(path))
             return None
 
-    def load_df_from_csv(self, df, path):
+    def load_df_from_csv(self, path):
         if(self.exists(path)):
             self.logger.debug("Loading newest file from {}".format(path))
             with open(self.get_newest_file(path), 'r', encoding="utf-8") as f:
@@ -85,15 +85,15 @@ class file_helper:
             self.logger.debug("'{}' does not exist".format(path))
             return None
 
-    def save_state(self, class_name, var_name, obj, type):
-        path = os.path.join(self.pickles_path, class_name, var_name)
+    def save_state(self, class_name, var_name, obj, type, path=None):
+        if path is None: path = os.path.join(self.pickles_path, class_name, var_name)
         if(type == self.VarType.DATAFRAME):
             self.save_df_to_pickle(obj, path)
         elif(type == self.VarType.OBJECT):
             self.save_pickle(obj, path)
 
-    def load_state(self, class_name, var_name, type):
-        path = os.path.join(self.pickles_path, class_name, var_name)
+    def load_state(self, class_name, var_name, type, path=None):
+        if path is None: path = os.path.join(self.pickles_path, class_name, var_name)
         if(type == self.VarType.DATAFRAME):
             return self.load_df_from_pickle(path)
         elif(type == self.VarType.OBJECT):
