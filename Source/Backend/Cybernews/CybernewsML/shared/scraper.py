@@ -3,22 +3,23 @@ import concurrent.futures
 import requests
 import newspaper as nwp
 import multiprocessing as mp
+import pandas as pd
+
+from datetime import datetime
 
 from shared.file_helper import file_helper
 
 class scraper:
-    def __init__(self, logger, df):
+    def __init__(self, logger):
         self.logger = logger
         self.df = None
         self.df_result = None
 
-    def scrap_article(self, row):
-        index, row_content = row
+    def scrap_article(self, url):
         text = ""
         try:
-            url = row_content['web_sp_link']
             with requests.Session().get(url, timeout=5) as response:
-                self.logger.info('{}. Processing url: {}\n'.format(index ,url))
+                self.logger.info('Scraping url: {}'.format(url))
 
                 article = nwp.Article(url)
                 article.html = response.text
@@ -27,8 +28,7 @@ class scraper:
                 
                 text = article.text
         except Exception as e:
-            self.logger.error("Processing failed for url: {}\n".format(url))
-            raise
+            self.logger.error("Processing failed for url: {}".format(url))
             
         return text
 
@@ -36,16 +36,16 @@ class scraper:
         num_cores = mp.cpu_count()
 
         scraped_articles = []
-        rows = df.iterrows()
         with concurrent.futures.ThreadPoolExecutor(max_workers=num_cores) as executor:
-            scraped_articles = [row for row in executor.map(self.scrap_article, rows)]
+            urls = [row['web_sp_link'] for i, row in df.iterrows()]
+            scraped_articles = [text for text in executor.map(self.scrap_article, urls)]
         
         self.scraped_articles = scraped_articles
         self.logger.info("Finished processing urls")
 
-        return results
+        return scraped_articles
 
-    def save_results(self):
+    def merge_results(self):
         df_result = self.df.reset_index(drop=True)
         
         s1 = pd.Series(name='text_scraped', data=self.scraped_articles)
@@ -57,27 +57,35 @@ class scraper:
 
         return df_result
 
+    def load_state(self):
+        self.logger.info("Try to load state...")
+        helper = file_helper(self.logger)
+        class_name = 'scraper'
+        
+        self.df = helper.load_state(class_name, 'df', file_helper.VarType.DATAFRAME)
+        self.scraped_articles = helper.load_state(class_name, 'scraped_articles', file_helper.VarType.OBJECT)
+
     def save_state(self, path):
         helper = file_helper(self.logger)
         class_name = 'scraper'
 
+        if self.df is not None: helper.save_state(class_name, 'df', self.df, file_helper.VarType.DATAFRAME)
         if self.scraped_articles is not None: helper.save_state(class_name, 'scraped_articles', self.scraped_articles, file_helper.VarType.OBJECT)
 
-        path = 'data/{}/{}-{}.csv'.format(datetime.now().strftime(path, path, "%m-%d-%Y-%H-%M-%S"))
+        path = 'data/{}/{}-{}.csv'.format(path, path, datetime.now().strftime("%m-%d-%Y-%H-%M-%S"))
         if self.df_result is not None: 
             helper.save_df_to_csv(self.df_result, path)
             helper.save_state(class_name, 'df_result', self.df_result, file_helper.VarType.DATAFRAME)
 
-
-
-    def build(self, load_path='data/01_crawl_urls', save_path='data\02_scrap_articles'):
+    def build(self, load_path='01_crawl_urls', save_path='02_scrap_articles'):
         helper = file_helper(self.logger)
-        
-        if self.df is None: self.df=helper.load_df_from_csv(load_path)
-        
+
         try:
+            self.load_state()
+            
+            if self.df is None: self.df=helper.load_df_from_csv('data/{}'.format(load_path))
             if self.scraped_articles is None: self.scrap_parallel(self.df)
-            if self.df_result is None: self.save_results()
+            if self.df_result is None: self.merge_results()
         except:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             self.logger.error("Caught exception", exc_info=(exc_type, exc_value, exc_traceback))
@@ -87,5 +95,3 @@ class scraper:
             self.save_state(save_path)
 
         return self
-        
-        

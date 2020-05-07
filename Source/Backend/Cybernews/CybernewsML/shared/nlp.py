@@ -24,9 +24,9 @@ from gensim.corpora import Dictionary
 from shared.file_helper import file_helper
 
 class NlpMode(Enum):
-        ALL = 1
-        SPACY = 2
-        GENSIM = 3
+    ALL = 1
+    SPACY = 2
+    GENSIM = 3
 
 class gensim_corpus:
     def __init__(self, path):
@@ -192,36 +192,12 @@ class nlp:
 
         return texts
 
-    def load_df(self, path):
-        pickle_path = 'pickles/nlp/df.pickle'
-        
-        if(not os.path.exists(pickle_path)):
-            self.logger.debug("'{}' does not exist, loading from {}.".format(pickle_path, path))
-            helper = file_helper(path)
-            f = open(helper.get_newest_file(), 'r', encoding="utf-8")
-            self.df = pd.read_csv(f, index_col = 0, converters = {
-                'text_scraped_words': lambda x: x[1:-1].replace("'", "").split(', ')
-            })
-
-            self.df.to_pickle(pickle_path)
-        else:
-            self.logger.debug("loading from {}".format(pickle_path))
-            self.df = pd.read_pickle(pickle_path)
-
-    def save_results(self):
+    def merge_results(self):
         df_result = self.df.reset_index(drop=True)
         
         s1 = pd.Series(name='text_lemmatized_spacy', data=self.spacy_docs)
         s2 = pd.Series(name='text_keywords_spacy', data=self.spacy_keywords)
         # s3 = pd.Series(name='text_stemmed_gensim', data=self.spacy_docs)
-        s4 = pd.Series(name='corpus_tfidf_gensim', data=[
-                sparse_vector for sparse_vector in self.gensim_corpus_tfidf
-            ]
-        )
-        s5 = pd.Series(name='corpus_w2v_gensim', data=[
-                doc_vector for doc_vector in self.gensim_docs_vectors_w2v
-            ]
-        )
         
         df_result = pd.concat([df_result, s1, s2, s4, s5], axis=1)
         
@@ -236,7 +212,6 @@ class nlp:
             self.spacy.vocab[word].is_stop = True
  
     def init_gensim_w2v(self, docs):
-        gensim_texts_path = 'pickles/nlp/gensim_texts.txt'
         google_w2v_path = 'data/downloaded/GoogleNews-vectors-negative300.bin'
 
         # Use only pre-trained model without training
@@ -251,8 +226,8 @@ class nlp:
 
         return model
 
-
     def load_state(self, mode):
+        self.logger.info("Try to load state with mode {}...".format(mode.name))
         helper = file_helper(self.logger)
         class_name = 'nlp'
         
@@ -278,7 +253,7 @@ class nlp:
             self.gensim_w2v_model = helper.load_state(class_name, 'gensim_w2v_model', file_helper.VarType.OBJECT) 
             self.gensim_docs_vectors_w2v = helper.load_state(class_name, 'gensim_docs_vectors_w2v', file_helper.VarType.OBJECT) 
 
-    def save_state(self, mode):
+    def save_state(self, mode, path):
         helper = file_helper(self.logger)
         class_name = 'nlp'
 
@@ -299,18 +274,18 @@ class nlp:
             if self.gensim_w2v_model is not None: helper.save_state(class_name, 'gensim_w2v_model', self.gensim_w2v_model, file_helper.VarType.OBJECT) 
             if self.gensim_docs_vectors_w2v is not None: helper.save_state(class_name, 'gensim_docs_vectors_w2v', self.gensim_docs_vectors_w2v, file_helper.VarType.OBJECT) 
 
-        path = 'data/04_nlp_pipeline/04_nlp_pipeline-{}.csv'.format(datetime.now().strftime("%m-%d-%Y-%H-%M-%S"))
-        if self.df_result is not None: helper.save_df_to_csv(self.df_result, path)
-        if self.df_result is not None: helper.save_state(class_name, 'df_result', self.df_result, file_helper.VarType.DATAFRAME)
+        path = 'data/{}/{}-{}.csv'.format(path, path, datetime.now().strftime("%m-%d-%Y-%H-%M-%S"))
+        if self.df_result is not None: 
+            helper.save_df_to_csv(self.df_result, path)
+            helper.save_state(class_name, 'df_result', self.df_result, file_helper.VarType.DATAFRAME)
 
-    def build(self, mode, path='data/03_cleaninig_entries'):
+    def build(self, mode, load_path='03_clean_entries', save_path='04_nlp_pipeline'):
         helper = file_helper(self.logger)
 
         try:
-            self.logger.info("Try to load state with mode {}...".format(mode.name))
             self.load_state(mode)
             
-            if self.df is None: self.df=helper.load_df_from_csv(path)
+            if self.df is None: self.df=helper.load_df_from_csv('data/{}'.format(load_path))
             if self.texts is None: self.textacy_preprocess(self.df.text_scraped)
 
             if(mode in [NlpMode.SPACY, NlpMode.ALL]):
@@ -323,7 +298,7 @@ class nlp:
                 if self.gensim_w2v_model is None: self.init_gensim_w2v(self.gensim_docs)
                 if self.gensim_docs_vectors_w2v is None: self.gensim_transform_w2v(self.gensim_w2v_model, self.gensim_docs, self.gensim_corpus_tfidf)
 
-            if self.df_result is None: self.save_results()
+            if self.df_result is None: self.merge_results()
         except :
             exc_type, exc_value, exc_traceback = sys.exc_info()
             self.logger.error("Caught exception", exc_info=(exc_type, exc_value, exc_traceback))
@@ -331,10 +306,6 @@ class nlp:
 
         finally:
             self.logger.info("Saving state with mode {}...".format(mode.name))
-            self.save_state(mode)
+            self.save_state(mode, save_path)
         
         return self
-
-if __name__=='__main__':
-    n = nlp()
-    n.build(NlpMode.ALL)

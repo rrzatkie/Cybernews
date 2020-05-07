@@ -5,11 +5,35 @@ from datetime import datetime
 import pickle
 import pandas as pd
 from enum import Enum
+import keras
+from keras import backend as K
+
+class metrics:
+    def __init__(self):
+        pass
+    
+    def recall_m(self, y_true, y_pred):
+        true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+        possible_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
+        recall = true_positives / (possible_positives + K.epsilon())
+        return recall
+
+    def precision_m(self, y_true, y_pred):
+        true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+        predicted_positives = K.sum(K.round(K.clip(y_pred, 0, 1)))
+        precision = true_positives / (predicted_positives + K.epsilon())
+        return precision
+
+    def f1_m(self, y_true, y_pred):
+        precision = self.precision_m(y_true, y_pred)
+        recall = self.recall_m(y_true, y_pred)
+        return 2*((precision*recall)/(precision+recall+K.epsilon()))
 
 class file_helper:
     class VarType(Enum):
         DATAFRAME = 1,
-        OBJECT = 2
+        OBJECT = 2,
+        KERAS_MODEL = 3
 
     def __init__(self, logger, pickles_path='pickles/'):
         self.logger = logger
@@ -27,7 +51,7 @@ class file_helper:
             dates = list(map(lambda x: {'fileName': x['fileName'], 'date': datetime.strptime(x['date'], "%m-%d-%Y-%H-%M-%S")}, dates))
             dates.sort(key=lambda x: x['date'], reverse=True)
 
-            return self.path + "/" + dates[0]['fileName']
+            return path + "/" + dates[0]['fileName']
         else:
             self.logger.debug("'{}' does not exist".format(path))
             return None
@@ -85,12 +109,44 @@ class file_helper:
             self.logger.debug("'{}' does not exist".format(path))
             return None
 
+    def save_keras_model(self, model, path):
+        if(model is not None):
+            self.logger.info("Saving keras model at: {}".format(path))
+            model.save(path)
+        else:
+            raise TypeError
+
+    def load_keras_model(self, path):
+
+        if(self.exists(path)):
+            self.logger.debug("Loading keras model from {}".format(path))
+            m = metrics()
+            dependecies = {
+                "f1_m": m.f1_m,
+                "recall_m": m.recall_m,
+                "precision_m": m.precision_m
+            }
+
+            return keras.models.load_model(path, custom_objects=dependecies)
+        else:
+            self.logger.debug("'{}' does not exist".format(path))
+            return None
+
     def save_state(self, class_name, var_name, obj, type, path=None):
+        try:
+            tmp = os.path.join(self.pickles_path, class_name)
+            os.mkdir(tmp)
+            self.logger.info('Created pickles directory for class {} -> {}'.format(class_name, tmp))
+        except:
+            pass
+        
         if path is None: path = os.path.join(self.pickles_path, class_name, var_name)
         if(type == self.VarType.DATAFRAME):
             self.save_df_to_pickle(obj, path)
         elif(type == self.VarType.OBJECT):
             self.save_pickle(obj, path)
+        elif(type == self.VarType.KERAS_MODEL):
+            self.save_keras_model(obj, path)
 
     def load_state(self, class_name, var_name, type, path=None):
         if path is None: path = os.path.join(self.pickles_path, class_name, var_name)
@@ -98,5 +154,7 @@ class file_helper:
             return self.load_df_from_pickle(path)
         elif(type == self.VarType.OBJECT):
             return self.load_pickle(path)
+        elif(type == self.VarType.KERAS_MODEL):
+            return self.load_keras_model(path)
 
 

@@ -1,5 +1,7 @@
+import sys
 import json
 from requests import request
+from datetime import datetime
 
 import pandas as pd
 
@@ -23,18 +25,18 @@ class crawler:
         json_content = json.loads(response.text)
         columns = list(json_content['results'][0].keys())
         next_link = json_content['links']['next']
-        cur_count = json_content['count']
 
-        return json_content, next_link, cur_count, columns
+        return json_content, next_link, columns
 
     def crawl_cyware(self, url):
+        self.logger.info("Started crawling 'Cyware' api")
         entries_api = []
         columns = []
 
-        cur_count = 1
-        while(cur_count != 0):
+        count = 0
+        while(url != None):
             response = request("POST", url, headers=self.cyware_headers())
-            json_content, next_link, cur_count, columns = self.cyware_parse_response(response)
+            json_content, next_link, columns = self.cyware_parse_response(response)
             
             entries_api.extend(
                 [
@@ -42,31 +44,50 @@ class crawler:
                     for entry in json_content['results']
                 ]
             )
+            url = next_link
+            
+            count+=len(json_content['results'])
+            self.logger.info("Processed {} entries".format(count))
 
-        self.columns = columns
-        self.cyware_entries = entries_api
+            self.columns = columns
+            self.cyware_entries = entries_api
 
         return entries_api
     
-    def save_results(self):
+    def merge_results(self):
         df_result = pd.DataFrame(columns=self.columns, data=self.cyware_entries)
 
         self.logger.info("Merged results to dataframe.")
         self.df_result = df_result
 
         return df_result
+    
+    def load_state(self):
+        self.logger.info("Try to load state...")
+        helper = file_helper(self.logger)
+        class_name = 'crawler'
+        
+        self.cyware_entries = helper.load_state(class_name, 'cyware_entries', file_helper.VarType.OBJECT)
+        self.columns = helper.load_state(class_name, 'columns', file_helper.VarType.OBJECT)
 
     def save_state(self, path):
         helper = file_helper(self.logger)
         class_name = 'crawler'
         
         if self.cyware_entries is not None: helper.save_state(class_name, 'cyware_entries', self.cyware_entries, file_helper.VarType.OBJECT)
+        if self.columns is not None: helper.save_state(class_name, 'columns', self.columns, file_helper.VarType.OBJECT)
 
+        path = 'data/{}/{}-{}.csv'.format(path, path, datetime.now().strftime("%m-%d-%Y-%H-%M-%S"))
+        if self.df_result is not None: 
+            helper.save_df_to_csv(self.df_result, path)
+            helper.save_state(class_name, 'df_result', self.df_result, file_helper.VarType.DATAFRAME)
 
-    def build(self, save_path='data\01_crawl_urls'):
+    def build(self, save_path='01_crawl_urls'):
         try:
-            self.crawl_cyware('https://api.cyware.com/public/cyuserallstory/')
-            if self.df_result is None: self.save_results()
+            self.load_state()
+
+            if self.cyware_entries is None: self.crawl_cyware('https://api.cyware.com/public/cyuserallstory/')
+            if self.df_result is None: self.merge_results()
         except:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             self.logger.error("Caught exception", exc_info=(exc_type, exc_value, exc_traceback))
