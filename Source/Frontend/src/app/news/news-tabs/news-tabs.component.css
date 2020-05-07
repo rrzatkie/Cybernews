@@ -3,19 +3,15 @@
 }
 
 .selected-post{
-  background-color: red;
   flex: 3;
 }
 
 .tabs-list{
-  background-color: grey;
   flex: 1;
 }
 
 .selected-post-title{
   position: relative;
-  color: white;
-  background-color: rgba(0, 0, 0, 0.226);
   bottom: 10px;
   left: 10px;
 }
