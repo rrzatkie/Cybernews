@@ -4,14 +4,16 @@ using Cybernews.DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Cybernews.DAL.Migrations
 {
     [DbContext(typeof(CybernewsContext))]
-    partial class CybernewsContextModelSnapshot : ModelSnapshot
+    [Migration("20200510154847_Changed Keywords,Added ArticlesSimilarity")]
+    partial class ChangedKeywordsAddedArticlesSimilarity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -82,9 +84,6 @@ namespace Cybernews.DAL.Migrations
                     b.Property<int>("KeywordId")
                         .HasColumnType("int");
 
-                    b.Property<float>("Value")
-                        .HasColumnType("real");
-
                     b.HasKey("ArticleId", "KeywordId");
 
                     b.HasIndex("KeywordId");
@@ -149,6 +148,9 @@ namespace Cybernews.DAL.Migrations
 
                     b.Property<string>("Slug")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<float>("Value")
+                        .HasColumnType("real");
 
                     b.HasKey("Id");
 

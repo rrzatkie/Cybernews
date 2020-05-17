@@ -18,5 +18,6 @@ namespace Cybernews.CybernewsApi.Dtos
         }
         public int Count { get; set; }
         public int QueryItemId { get; set; }
+        public string QueryItemNameToDisplay { get; set; }
     }
 }

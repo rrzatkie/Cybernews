@@ -4,10 +4,22 @@ namespace Cybernews.CybernewsApi.Dtos
 {
     public class ArticleDetailsDto
     {
-        public int ArticleId { get; set; }
-        public string ArticleImgUrl { get; set; }
-        public string ArticleTitle { get; set; }
-        public string ArticleUrl { get; set; }
-        public List<KeywordDto> ArticleKeywords { get; set; }
+        private List<SimilarArticleDto> similarArticles;
+        public ArticleCardDto Article { get; set; }
+        public List<SimilarArticleDto> SimilarArticles 
+        {
+            get
+            {
+                return this.similarArticles ?? new List<SimilarArticleDto>();
+            }
+            set
+            {
+                if(value != null)
+                {
+                    this.similarArticles = value;
+                }
+            } 
+        }
+
     }
 }

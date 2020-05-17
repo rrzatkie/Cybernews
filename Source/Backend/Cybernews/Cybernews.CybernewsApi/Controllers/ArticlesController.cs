@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Cybernews.CybernewsApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api")]
     [ApiController]
     public class ArticlesUIController : ControllerBase
     {
@@ -25,6 +25,18 @@ namespace Cybernews.CybernewsApi.Controllers
             return Ok(await articlesService.GetArticleCards(paginationOptions, query));
         }
 
+        [HttpGet("articles/top")]
+        public async Task<ActionResult> GetTopArticles([FromQuery] QueryDto query)
+        {
+            return Ok(await articlesService.GetTopArticles(query));
+        }
+
+        [HttpGet("articles/archive")]
+        public async Task<ActionResult> GetArticlesArchive([FromQuery] QueryDto query)
+        {
+            return Ok(await articlesService.GetArticlesArchive(query));
+        }
+
 
         [HttpGet("articleDetails/{id}")]
         public async Task<ActionResult> GetArtcleDetails(int id)
@@ -33,24 +45,56 @@ namespace Cybernews.CybernewsApi.Controllers
         }
 
 
-        [HttpGet("categories")]
-        public async Task<ActionResult> GetCategories()
+        [HttpGet("categories/all")]
+        public async Task<ActionResult> GetAllCategories()
         {
-            return Ok(await articlesService.GetCategories());
+            return Ok(await articlesService.GetAllCategories());
+        }
+
+        [HttpGet("categories/top")]
+        public async Task<ActionResult> GetTopCategories([FromQuery] QueryDto query)
+        {
+            return Ok(await articlesService.GetTopCategories(query));
         }
 
 
-        [HttpGet("slides/{id}")]
-        public async Task<ActionResult> GetSlides(int id)
+        [HttpGet("keywords/all")]
+        public async Task<ActionResult> GetKeywords()
         {
-            return Ok(await articlesService.GetSlides(id));
+            return Ok(await articlesService.GetAllKeywords());
         }
 
+        [HttpGet("keywords/top")]
+        public async Task<ActionResult> GetTopKeywords([FromQuery] QueryDto query)
+        {
+            return Ok(await articlesService.GetTopKeywords(query));
+        }
 
         [HttpPost("article/add")]
         public async Task<ActionResult> AddArticles(ArticleDto[] articles)
         {
             return Ok(await articlesService.AddArticles(articles));
+        }
+
+
+        [HttpPut("article/category")]
+        public async Task<ActionResult> UpdateCategories(UpdateCategoryDto updateCategoryDto)
+        {
+            return Ok(await articlesService.UpdateCategories(updateCategoryDto));
+        }
+
+
+        [HttpPut("article/keyword")]
+        public async Task<ActionResult> UpdateKeyword(UpdateKeywordDto updateKeywordDto)
+        {
+            return Ok(await articlesService.UpdateKeywords(updateKeywordDto));
+        }
+
+
+        [HttpPost("similarity/add")]
+        public async Task<ActionResult> AddSimilarity(ArticlesSimilarityDto articlesSimilarity)
+        {
+            return Ok(await articlesService.AddSimilarity(articlesSimilarity));
         }
     }
 }

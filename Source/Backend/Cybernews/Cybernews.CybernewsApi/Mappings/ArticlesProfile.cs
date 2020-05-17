@@ -14,26 +14,25 @@ namespace Cybernews.CybernewsApi.Mappings
     {
         public ArticlesProfile()
         {
+            var random = new Random(123);
+
             CreateMap<Article, ArticleCardDto>()
-            .ForMember(x => x.ArticleDateCreated, y => y.MapFrom( z =>  z.DateCreated))
             .ForMember(x => x.ArticleId, y => y.MapFrom(z => z.Id))
+            .ForMember(x => x.ArticleDateCreated, y => y.MapFrom(z => z.DateCreated.ToString("dd MMM yyyy")))
             .ForMember(x => x.ArticleImgUrl, y => y.MapFrom(z => z.ImageUrl))
             .ForMember(x => x.ArticleTitle, y => y.MapFrom(z => z.Title))
+            .ForMember(x => x.ArticleAuthor, y => y.MapFrom(z => z.Author))
             .ForMember(x => x.ArticleUrl, y => y.MapFrom(z => z.Url))
-            .ForMember(x => x.ArticleCategories, y => y.MapFrom(z => new List<ArticleCategory>()));
+            .ForMember(x => x.LikesCount, y => y.MapFrom(z => z.NoOfLikes))
+            .ForMember(x => x.CommentsCount, y => y.MapFrom(z => random.Next(500)))
+            .ForMember(x => x.ArticleCategories, y => y.MapFrom(z => new List<CategoryDto>()))
+            .ForMember(x => x.ArticleKeywords, y => y.MapFrom(z => new List<KeywordDto>()));
 
             CreateMap<Article, SlideDto>()
             .ForMember(x => x.ArticleId, y => y.MapFrom(z => z.Id))
             .ForMember(x => x.ArticleImgUrl, y => y.MapFrom(z => z.ImageUrl))
             .ForMember(x => x.ArticleTitle, y => y.MapFrom(z => z.Title))
             .ForMember(x => x.ArticleUrl, y => y.MapFrom(z => z.Url));
-
-            CreateMap<Article, ArticleDetailsDto>()
-            .ForMember(x => x.ArticleId, y => y.MapFrom(z => z.Id))
-            .ForMember(x => x.ArticleImgUrl, y => y.MapFrom(z => z.ImageUrl))
-            .ForMember(x => x.ArticleTitle, y => y.MapFrom(z => z.Title))
-            .ForMember(x => x.ArticleUrl, y => y.MapFrom(z => z.Url))
-            .ForMember(x => x.ArticleKeywords, y => y.MapFrom(z => new List<ArticleKeyword>()));
             
             CreateMap<Category, CategoryDto>()
             .ForMember(x => x.CategoryId, y => y.MapFrom(z => z.Id))
@@ -44,6 +43,12 @@ namespace Cybernews.CybernewsApi.Mappings
             .ForMember(x => x.KeywordId, y => y.MapFrom(z => z.Id))
             .ForMember(x => x.KeywordNameToDisplay, y => y.MapFrom(z => z.NameToDisplay))
             .ForMember(x => x.KeywordSlug, y => y.MapFrom(z => z.Slug));
+
+            CreateMap<Tuple<Keyword, float>, KeywordDto>()
+            .ForMember(x => x.KeywordId, y => y.MapFrom(z => z.Item1.Id))
+            .ForMember(x => x.KeywordNameToDisplay, y => y.MapFrom(z => z.Item1.NameToDisplay))
+            .ForMember(x => x.KeywordSlug, y => y.MapFrom(z => z.Item1.Slug))
+            .ForMember(x => x.KeywordValue, y => y.MapFrom(z => z.Item2));
 
             CreateMap<ArticleDto, Article>()
             .ForMember(x => x.Author, y => y.MapFrom(z => z.Author))
@@ -57,10 +62,9 @@ namespace Cybernews.CybernewsApi.Mappings
             .ForMember(x => x.NameToDisplay, y => y.MapFrom(z => z))
             .ForMember(x => x.Slug, y => y.MapFrom(z => Slugify(z)));
 
-            CreateMap<string, Keyword>()
-            .ForMember(x => x.NameToDisplay, y => y.MapFrom(z => z))
-            .ForMember(x => x.Slug, y => y.MapFrom(z => Slugify(z)));
-        
+            CreateMap<PipelineKeywordDto, Keyword>()
+            .ForMember(x => x.NameToDisplay, y => y.MapFrom(z => z.Name))
+            .ForMember(x => x.Slug, y => y.MapFrom(z => Slugify(z.Name)));
         }
         private DateTime UnixToDatetimeConverter(System.Int32 date)
         {

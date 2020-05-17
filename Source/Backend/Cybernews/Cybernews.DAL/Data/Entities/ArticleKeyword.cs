@@ -7,5 +7,6 @@ namespace Cybernews.DAL.Data.Entities
         public Article Article { get; set; }
         public int KeywordId { get; set; }
         public Keyword Keyword { get; set; }
+        public float Value { get; set; }
     }
 }

@@ -52,10 +52,14 @@ namespace Cybernews.DAL.Data
         public DbSet<Keyword> Keywords { get; set; }
         public DbSet<ArticleKeyword> ArticleKeywords { get; set; }
         public DbSet<ArticleCategory> ArticleCategories { get; set; }
+        public DbSet<ArticlesSimilarity> ArticlesSimilarities { get; set; }
 
         
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Article>()
+                .HasIndex(a => a.Url).IsUnique();
+                
             modelBuilder.Entity<ArticleCategory>()
                 .HasKey(ac => new { ac.ArticleId, ac.CategoryId });  
             modelBuilder.Entity<ArticleCategory>()
@@ -77,6 +81,24 @@ namespace Cybernews.DAL.Data
                 .HasOne(ak => ak.Keyword)
                 .WithMany(k => k.ArticleKeywords)
                 .HasForeignKey(ak => ak.KeywordId);
+
+            modelBuilder.Entity<ArticlesSimilarity>()
+                .HasKey(x => x.Id);
+            modelBuilder.Entity<ArticlesSimilarity>()
+                .HasIndex(x => new {x.ArticleId_2, x.ArticleId_1}).IsUnique();
+            modelBuilder.Entity<ArticlesSimilarity>()
+                .HasIndex(x => new {x.ArticleId_1, x.ArticleId_2}).IsUnique();
+            modelBuilder.Entity<ArticlesSimilarity>()
+                .HasOne(x => x.Article_1)
+                .WithMany(x => x.ArticleSimilaritiesAsFirst)
+                .HasForeignKey(x => x.ArticleId_1)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ArticlesSimilarity>()
+                .HasOne(x => x.Article_2)
+                .WithMany(x => x.ArticleSimilaritiesAsSecond)
+                .HasForeignKey(x => x.ArticleId_2)
+                .OnDelete(DeleteBehavior.Restrict);
+            
 
             // var random = new Random(Seed: 123);
             // var now = DateTime.UtcNow;
