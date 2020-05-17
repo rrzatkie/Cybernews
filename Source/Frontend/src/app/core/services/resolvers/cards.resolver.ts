@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Resolve, ActivatedRouteSnapshot, Router } from '@angular/router';
-import { CybernewsApiResponse, ArticleCardType } from '../../../shared/article';
+import { CybernewsApiResponse, ArticleCardType, PaginationOptions, Query } from '../../../shared/article';
 import { Observable } from 'rxjs';
 import { ArticleRepositoryService } from '../repository/article-repository.service';
 
@@ -18,10 +18,25 @@ export class CardsResolver implements Resolve<CybernewsApiResponse> {
     let queryItemId = 0;
     let cardType: ArticleCardType;
     const id = parseInt(route.paramMap.get('id'), 10);
-    queryItemId = id ? id : 1;
+    const dateFrom = route.queryParamMap.get('dateFrom');
+    const dateTo = route.queryParamMap.get('dateTo');
+
+    queryItemId = id ? id : queryItemId;
 
     cardType = route.data.cardType as ArticleCardType;
 
-    return this.articleRepositoryService.getArticleCards(12, 1, cardType, queryItemId);
+    const paginationOptions: PaginationOptions = {
+      limit: 10,
+      pageNumber: 1
+    };
+
+    const query: Query = {
+      itemId: queryItemId,
+      type: cardType,
+      dateCreatedTo: dateTo,
+      dateCreatedFrom: dateFrom
+    };
+
+    return this.articleRepositoryService.getArticleCards(paginationOptions, query);
   }
 }

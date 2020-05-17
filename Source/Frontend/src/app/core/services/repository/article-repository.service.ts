@@ -17,7 +17,7 @@ export class ArticleRepositoryService {
     private readonly http: HttpClient,
     private readonly pipe: KeyValuePipe,
     private readonly configuration: ConfigurationService) {
-      this.articleApiUrl = configuration.environmentConfiguration.CybernewsApi.Url + 'ArticlesUI';
+      this.articleApiUrl = configuration.environmentConfiguration.CybernewsApi.Url;
    }
 
    objectsToQueryString(objs: Array<any>): HttpParams {
@@ -26,7 +26,9 @@ export class ArticleRepositoryService {
     objs.forEach(obj => {
       obj = this.pipe.transform(obj);
       obj.forEach(item => {
-        httpParams = httpParams.set(item.key, item.value);
+        if(item.value){
+          httpParams = httpParams.set(item.key, item.value);
+        }
       });
     });
 
@@ -43,18 +45,18 @@ export class ArticleRepositoryService {
     );
   }
 
-  getArticleCards(limit: number, pageNumber: number, type: ArticleCardType, id: number): Observable<CybernewsApiResponse> {
-    const paginationOptions: PaginationOptions = {
-      limit,
-      pageNumber
-    };
-    const searchOptions: Query = {
-      type,
-      itemId: id
-    };
-    const httpParams = this.objectsToQueryString([paginationOptions, searchOptions]);
-
+  getArticleCards(paginationOptions?: PaginationOptions, searchOptions?: Query): Observable<CybernewsApiResponse> {
     const url = `${this.articleApiUrl}/articleCards`;
+    const objParams = [];
+
+    if (paginationOptions) {
+      objParams.push(paginationOptions);
+    }
+
+    if (searchOptions) {
+      objParams.push(searchOptions);
+    }
+    const httpParams = this.objectsToQueryString(objParams);
 
     return this.http.get<CybernewsApiResponse>(url, {
         observe: 'response',
@@ -77,8 +79,100 @@ export class ArticleRepositoryService {
     );
   }
 
+  getTopArticles(searchOptions?: Query): Observable<CybernewsApiResponse> {
+    const url = `${this.articleApiUrl}/articles/top`;
+
+    const objParams = [];
+
+    if (searchOptions) {
+      objParams.push(searchOptions);
+    }
+
+    const httpParams = this.objectsToQueryString(objParams);
+
+    return this.http.get<CybernewsApiResponse>(url, {
+      observe: 'response',
+      params: httpParams
+    }).pipe(
+        map(response => {
+          return response.body;
+        })
+    );
+  }
+
+
+  getArticlesArchive(searchOptions?: Query): Observable<CybernewsApiResponse> {
+    const url = `${this.articleApiUrl}/articles/archive`;
+
+    const objParams = [];
+
+    if (searchOptions) {
+      objParams.push(searchOptions);
+    }
+
+    const httpParams = this.objectsToQueryString(objParams);
+
+    return this.http.get<CybernewsApiResponse>(url, {
+      observe: 'response',
+      params: httpParams
+    }).pipe(
+        map(response => {
+          return response.body;
+        })
+    );
+  }
+
   getCategories(): Observable<CybernewsApiResponse> {
-    const url = `${this.articleApiUrl}/categories`;
+    const url = `${this.articleApiUrl}/categories/all`;
+
+    return this.http.get<CybernewsApiResponse>(url, {observe: 'response' })
+      .pipe(
+        map(response => {
+          return response.body;
+        })
+    );
+  }
+
+  getTopCategories(query: Query): Observable<CybernewsApiResponse> {
+    const url = `${this.articleApiUrl}/categories/top`;
+
+    const objParams = [];
+    if (query) {
+      objParams.push(query);
+    }
+    const httpParams = this.objectsToQueryString(objParams);
+
+    return this.http.get<CybernewsApiResponse>(url, {
+      observe: 'response',
+      params: httpParams
+    }).pipe(
+        map(response => {
+          return response.body;
+        })
+    );
+  }
+
+  getTopKeywords(query?: Query): Observable<CybernewsApiResponse> {
+    const url = `${this.articleApiUrl}/keywords/top`;
+
+    const objParams = [];
+    if (query) {
+      objParams.push(query);
+    }
+    const httpParams = this.objectsToQueryString(objParams);
+
+    return this.http.get<CybernewsApiResponse>(url, {
+      observe: 'response',
+      params: httpParams
+    }).pipe(
+        map(response => {
+          return response.body;
+        })
+    );
+  }
+
+  getKeywords(): Observable<CybernewsApiResponse> {
+    const url = `${this.articleApiUrl}/keywords/all`;
 
     return this.http.get<CybernewsApiResponse>(url, {observe: 'response' })
       .pipe(

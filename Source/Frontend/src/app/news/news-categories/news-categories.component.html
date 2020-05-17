@@ -1,0 +1,3 @@
+<div class="tagcloud">
+  <a *ngFor="let category of this.categories" [routerLink]="['/category/' + category.categoryId]" >{{category.categoryNameToDisplay}}</a>
+</div>

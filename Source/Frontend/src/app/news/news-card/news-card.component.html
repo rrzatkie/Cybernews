@@ -1,27 +1,44 @@
-<mat-card class="card">
-  <mat-card-header>
-  </mat-card-header>
-  <mat-card-content>
-    <img mat-card-image (load)="imgLoaded()" [src]="this.article.articleImgUrl" default="assets/img/slides/default-4.jpeg" alt="this.article.articleTitle">
-    <p>
-      {{this.article.articleTitle}}
-    </p>
-    <mat-chip-list [ngSwitch]="this.route.snapshot.data.cardType" ariaOrientation='horizontal'>
-      <div *ngSwitchCase="ArticleCardType.Category">
-        <mat-chip *ngFor="let category of this.article.articleCategories">
-          <a [routerLink]="['/category/' + category.categoryId]" >{{category.categorySlug}}</a>
-        </mat-chip>
+<div class="col-md-12">
+  <div class="blog-entry d-md-flex">
+      <a [href]="this.article.articleUrl" target="_blank" class="img img-2"
+          [ngStyle]="{'background-image': 'url(' + this.article.articleImgUrl +')'}">
+      </a>
+      <div class="text text-2 pl-md-4">
+          <h3 class="mb-2">
+            <a [href]="this.article.articleUrl" target="_blank">
+              {{this.article.articleTitle}}
+            </a>
+          </h3>
+          <div class="meta-wrap">
+              <p class="meta">
+                  <span><i class="icon-calendar mr-2"></i>{{this.article.articleDateCreated}}</span>
+                  <span><i class="icon-comment2 mr-2"></i>{{this.article.commentsCount}}</span>
+                  <span><i class="icon-thumb_up mr-2"></i>{{this.article.likesCount}}</span>
+              </p>
+              <div *ngFor="let category of this.article.articleCategories">
+                <p class="meta-categories">
+                  <span>
+                    <a [routerLink]="['/category/' + category.categoryId]">
+                      <i class="icon-folder-o mr-2"></i>{{category.categoryNameToDisplay}}
+                    </a>
+                  </span>
+                </p>
+              </div>
+          </div>
+          <div class="tagcloud">
+            <a class="tag-cloud-link" [routerLink]="['/keyword/' + this.keywords[0].keywordId]" >{{this.keywords[0].keywordSlug}}</a>
+            <a class="tag-cloud-link" [routerLink]="['/keyword/' + this.keywords[1].keywordId]" >{{this.keywords[1].keywordSlug}}</a>
+            <a class="tag-cloud-link" [routerLink]="['/keyword/' + this.keywords[2].keywordId]" >{{this.keywords[2].keywordSlug}}</a>
+            <a class="tag-cloud-link" [routerLink]="['/keyword/' + this.keywords[3].keywordId]" >{{this.keywords[3].keywordSlug}}</a>
+          </div>
+          <p class="mt-2">
+              <a style="border: 2px #48afee solid;" [routerLink]="['/details/' + this.article.articleId]"class="btn">
+                See details<span class="ion-ios-arrow-down ml-2"></span>
+              </a>
+              <a [href]="this.article.articleUrl" target="_blank" class="btn">
+                Read article <span class="ion-ios-arrow-forward ml-2"></span>
+              </a>
+          </p>
       </div>
-      <div *ngSwitchCase="ArticleCardType.Keyword">
-        <mat-chip  *ngFor="let keyword of this.article.articleKeywords">
-          <a [routerLink]="['/keyword/' + keyword.keywordId]" >{{keyword.keywordSlug}}</a>
-        </mat-chip>
-      </div>
-    </mat-chip-list>
-  </mat-card-content>
-  <div class="actions">
-    <button mat-button>LIKE</button>
-    <button mat-button>SHARE</button>
-    <button mat-button color="primary" [routerLink]="['details/'+ this.article.articleId]"  (click)="seeDetails()">Details</button>
   </div>
-</mat-card>
+</div>

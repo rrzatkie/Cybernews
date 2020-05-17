@@ -1,10 +1,28 @@
-<nav class="container-fluid header">
-    <app-navbar [categories]="this.categories"></app-navbar>
-</nav>
-<main class="container content">
-  <router-outlet></router-outlet>
-</main>
-<footer class="container-fluid footer">
-    <p>© Copyright <a [routerLink]="['/home']">Cybernews</a> </p>
-</footer>
 
+<div id="colorlib-page">
+  <a (click)="burgermenu()" id="burgermenu" class="colorlib-nav-toggle"><i></i></a>
+  <aside id="colorlib-aside" role="complementary" class="js-fullheight">
+      <app-navbar [categories]="this.categories"></app-navbar>
+  </aside>
+  <div id="colorlib-main">
+    <section class="ftco-section ftco-no-pt ftco-no-pb">
+        <div class="container">
+          <div class="row d-flex">
+            <div class="col-xl-8 py-5 px-md-5">
+              <div class="row pt-md-4">
+              <router-outlet></router-outlet>
+              </div>
+            </div>
+            <div class="col-xl-4 sidebar bg-light pt-5">
+              <app-sidebar
+                [categoriesSummary]="this.categoriesSummary"
+                [topArticles]="this.topArticles"
+                [topKeywords]="this.topKeywords"
+                [articlesArchives]="this.articlesArchives">
+              </app-sidebar>
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+</div>

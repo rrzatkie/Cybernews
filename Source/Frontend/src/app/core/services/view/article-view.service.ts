@@ -6,25 +6,16 @@ import { Category } from 'src/app/shared/article';
   providedIn: 'root'
 })
 export class ArticleViewService {
-  private categories = new Subject<Category[]>();
-  private articleDetailsVisibleState = new Subject<boolean>();
+  private articleDetailsVisibleState = new Subject<string>();
 
 
   constructor() { }
 
-  getCategories(): Observable<Category[]>{
-    return this.categories;
-  }
-
-  setCategories(categories: Category[]): void {
-    this.categories.next(categories);
-  }
-
-  getArticleDetailsVisibleState(): Observable<boolean> {
+  getMenuItemActiveState(): Observable<string> {
     return this.articleDetailsVisibleState;
   }
 
-  setArticleDetailsVisibleState(state: boolean): void {
-    this.articleDetailsVisibleState.next(state);
+  setMenuItemActiveState(id: string): void {
+    this.articleDetailsVisibleState.next(id);
   }
 }

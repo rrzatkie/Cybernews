@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 import { NavbarComponent } from './navbar.component';
-import { CategoriesResolver } from "../services/resolvers/categories.resolver";
 import { MatToolbarModule } from "@angular/material/toolbar";
 import { MatButtonModule } from "@angular/material/button";
 import { MatMenuModule } from "@angular/material/menu";
@@ -20,7 +19,6 @@ import { MatMenuModule } from "@angular/material/menu";
     RouterModule,
     NavbarComponent
   ],
-  declarations: [NavbarComponent],
-  providers: [CategoriesResolver]
+  declarations: [NavbarComponent]
 })
 export class NavbarModule { }

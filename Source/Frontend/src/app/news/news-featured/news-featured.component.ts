@@ -1,9 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ArticleRepositoryService } from 'src/app/core/services/repository/article-repository.service';
 import { ArticleViewService } from 'src/app/core/services/view/article-view.service';
-import { Category, Slide } from 'src/app/shared/article';
+import { Category, Slide, PaginationOptions, ArticleCard, ArticleCardsList } from 'src/app/shared/article';
 import { ActivatedRoute } from '@angular/router';
-import { KeyValue } from '@angular/common';
 
 @Component({
   selector: 'news-featured',
@@ -13,10 +12,10 @@ import { KeyValue } from '@angular/common';
 
 export class NewsFeaturedComponent implements OnInit {
   public slides: { [category: string]: Slide[]} = {};
-
   private categories: Category[];
-
   private categoriesSubscription;
+
+  public articleCardsList: ArticleCardsList;
 
   constructor(
     private readonly artcileRepositoryService: ArticleRepositoryService,
@@ -25,22 +24,21 @@ export class NewsFeaturedComponent implements OnInit {
   ) { }
 
   ngOnInit() {
+    this.articleViewService.setMenuItemActiveState('home');
     if(history.state.categories) {
       this.categories = history.state.categories;
-      this.loadSlides(this.categories);
     } else {
       this.artcileRepositoryService.getCategories().subscribe((response) => {
         this.categories = response.data as Category[];
-        this.loadSlides(this.categories);
       });
     }
-  }
 
-  loadSlides(categories: Category[]): void {
-    categories.forEach(category => {
-      this.artcileRepositoryService.getSlides(category.categoryId).subscribe((response) => {
-        this.slides[category.categoryId] = response.data as Slide[];
-      });
+    const paginationOtions: PaginationOptions = {
+      limit: 10,
+      pageNumber: 1
+    };
+    this.artcileRepositoryService.getArticleCards(paginationOtions).subscribe((response) => {
+      this.articleCardsList = response.data as ArticleCardsList;
     });
   }
 

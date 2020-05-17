@@ -1,5 +1,7 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { Category } from 'src/app/shared/article';
+import { ArticleRepositoryService } from '../services/repository/article-repository.service';
+import { ArticleViewService } from '../services/view/article-view.service';
 
 @Component({
   selector: 'app-navbar',
@@ -8,10 +10,21 @@ import { Category } from 'src/app/shared/article';
 })
 export class NavbarComponent implements OnInit {
   @Input() categories: Category[];
+  currentActive: HTMLElement;
+  public styleClassActive = "colorlib-active";
 
-  constructor() { }
+  constructor(
+    private readonly articleViewService: ArticleViewService
+  ) { }
 
   ngOnInit() {
+    this.articleViewService.getMenuItemActiveState().subscribe( x => {
+      if (this.currentActive) {
+        this.currentActive.className = '';
+      }
+      this.currentActive = document.getElementById(x);
+      this.currentActive.className = this.styleClassActive;
+    });
   }
 
 }

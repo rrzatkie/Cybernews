@@ -12,7 +12,10 @@ import { NewsCardComponent } from './news-card/news-card.component';
 import { NewsCardsViewComponent } from './news-cards-view/news-cards-view.component';
 import { NewsSliderComponent } from './news-slider/news-slider.component';
 import { NewsFeaturedComponent } from './news-featured/news-featured.component';
+import { NewsCategoriesComponent } from "./news-categories/news-categories.component";
+import { NewsKeywordsComponent } from "./news-keywords/news-keywords.component";
 import { DefaultImageDirective } from './news-slider/default-image.directive';
+import { NewsArchiveComponent } from "./news-archive/news-archive.component";
 import { MatCardModule } from '@angular/material/card';
 import { RouterModule } from '@angular/router';
 import { MatChipsModule } from '@angular/material/chips';
@@ -40,7 +43,10 @@ import { MatchHeightDirective } from './news-cards-view/matchHeight.directive';
     NewsSliderComponent,
     RouterModule,
     NewsFeaturedComponent,
+    NewsCategoriesComponent,
+    NewsKeywordsComponent,
     NewsDetailsComponent,
+    NewsArchiveComponent,
     NewsTabsComponent
   ],
   declarations: [
@@ -48,9 +54,12 @@ import { MatchHeightDirective } from './news-cards-view/matchHeight.directive';
     NewsCardsViewComponent,
     NewsSliderComponent,
     NewsFeaturedComponent,
+    NewsCategoriesComponent,
+    NewsKeywordsComponent,
     DefaultImageDirective,
     MatchHeightDirective,
     NewsDetailsComponent,
+    NewsArchiveComponent,
     NewsTabsComponent
   ],
   providers: [],

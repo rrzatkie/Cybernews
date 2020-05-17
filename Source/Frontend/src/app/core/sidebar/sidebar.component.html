@@ -1,0 +1,75 @@
+<div class="sidebar-box pt-md-4">
+  <form action="#" class="search-form">
+      <div class="form-group">
+          <span class="icon icon-search"></span>
+          <input type="text" class="form-control"
+              placeholder="Type a keyword and hit enter">
+      </div>
+  </form>
+</div>
+
+<div class="sidebar-box">
+  <h3 class="sidebar-heading">Categories</h3>
+  <ul class="categories">
+      <li *ngFor="let summary of this.categoriesSummary">
+        <a [routerLink]="['/category/' + summary.category.categoryId]">
+          {{summary.category.categoryNameToDisplay}} <span>({{summary.count}})</span>
+        </a>
+      </li>
+  </ul>
+</div>
+
+<div class="sidebar-box">
+  <h3 class="sidebar-heading">Popular Articles</h3>
+  <div *ngFor="let article of this.topArticles" class="block-21 mb-4 d-flex">
+      <a class="blog-img mr-4" [ngStyle]="{'background-image': 'url(' + this.article.articleImgUrl +')'}"></a>
+      <div class="text">
+          <h3 class="heading"><a [routerLink]="['/details/' + article.articleId]">{{article.articleTitle}}</a></h3>
+          <div class="meta">
+              <div><a href="#"><span class="icon-calendar"></span> {{article.articleDateCreated}}</a></div>
+              <div><a href="#"><span class="icon-person"></span> {{article.articleAuthor}}</a></div>
+              <div><a href="#"><span class="icon-chat"></span> {{article.commentsCount}}</a></div>
+              <div><a href="#"><span class="icon-thumb_up"></span> {{article.likesCount}}</a></div>
+          </div>
+      </div>
+  </div>
+
+</div>
+
+<div class="sidebar-box">
+  <h3 class="sidebar-heading">Hot topics:</h3>
+  <ul class="tagcloud">
+      <a *ngFor="let keyword of this.topKeywords"
+        [routerLink]="['/keyword/' + keyword.keyword.keywordId]"
+        class="tag-cloud-link">{{keyword.keyword.keywordNameToDisplay}}</a>
+  </ul>
+</div>
+
+<div class="sidebar-box">
+  <h3 class="sidebar-heading">Archives</h3>
+  <ul class="categories">
+      <li *ngFor="let articleArchive of this.articlesArchives"><a href="#">{{articleArchive.month}} {{articleArchive.year}} <span>({{articleArchive.count}})</span></a></li>
+  </ul>
+</div>
+
+
+<div class="sidebar-box">
+  <h3 class="sidebar-heading">Social media:</h3>
+  <p>
+      You can reach me here:
+  </p>
+  <ul class="social-list">
+      <li>
+          <span><a href="#"><i class="icon-github-square mr-3"></i>Github</a></span>
+      </li>
+      <li>
+          <span><a href="#"><i class="icon-facebook-square mr-3"></i>Facebook</a></span>
+      </li>
+      <li>
+          <span><a href="#"><i class="icon-twitter-square mr-3"></i>Twitter</a></span>
+      </li>
+      <li>
+          <span><a href="#"><i class="icon-linkedin-square mr-3"></i>LinkedIn</a></span>
+      </li>
+  </ul>
+</div>

@@ -18,10 +18,21 @@ export interface Category{
   categorySlug: string;
 }
 
+export interface CategorySummary{
+  category: Category;
+  count: number;
+}
+
 export interface Keyword{
   keywordId: number;
   keywordNameToDisplay: string;
   keywordSlug: string;
+  keywordValue: number;
+}
+
+export interface KeywordSummary{
+  keyword: Keyword;
+  count: number;
 }
 
 export interface ArticleCard{
@@ -29,23 +40,35 @@ export interface ArticleCard{
   articleImgUrl: string;
   articleTitle: string;
   articleUrl: string;
-  articleDate: string;
+  articleDateCreated: string;
+  articleAuthor: string;
+  likesCount: string;
+  commentsCount: string;
   articleCategories: Category[];
   articleKeywords: Keyword[];
+}
+
+export interface SimilarArticle{
+  article: ArticleCard;
+  similarity: number;
 }
 
 export interface ArticleCardsList{
   articleCards: ArticleCard[];
   count: number;
   queryItemId: number;
+  queryItemNameToDisplay: string;
+}
+
+export interface ArticlesArchive{
+  year: string;
+  month: string;
+  count: number;
 }
 
 export interface ArticleDetails{
-  articleId: number;
-  articleImgUrl: string;
-  articleTitle: string;
-  articleUrl: string;
-  articleKeywords: Keyword[];
+  article: ArticleCard;
+  similarArticles: SimilarArticle[];
 }
 
 export interface CybernewsApiResponse{
@@ -55,7 +78,7 @@ export interface CybernewsApiResponse{
 }
 
 export enum ArticleCardType {
-  Other = 0,
+  All = 0,
   Category,
   Keyword
 }
@@ -66,6 +89,8 @@ export interface PaginationOptions {
 }
 
 export interface Query {
-  type: ArticleCardType;
-  itemId: number;
+  type?: ArticleCardType;
+  itemId?: number;
+  dateCreatedFrom?: string;
+  dateCreatedTo?: string;
 }

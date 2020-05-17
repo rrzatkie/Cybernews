@@ -1,15 +1,17 @@
-<div class="cards">
-  <div class="cards-header">
-    <div class="title">
-      <p class="title-content">{{this.title}}</p>
-    </div>
-  </div>
-  <div class="cards-list" [ngStyle]="blurOnSelectionStyle">
-    <div matchHeight matchClass="card" class="box">
-      <div *ngFor="let article of this.articles">
-        <news-card [article]="article" (imgLoadingStatus)="detectChanges()"></news-card>
-      </div>
-    </div>
+
+<h2 *ngIf="this.cardType!=ArticleCardType.All" class="heading float-right"  style="color: #14181b;">
+  {{this.articleCardsList.queryItemNameToDisplay}}
+</h2>
+<h2 class="heading font-weight-bold">
+  {{this.title}}
+</h2>
+
+<div *ngFor="let group of this.articlesGroups">
+  <h5 class="mb-4">
+    {{ group.key }}
+  </h5>
+  <div *ngFor="let article of group.value">
+    <news-card [article]="article"></news-card>
   </div>
 </div>
-<router-outlet #outlet="outlet"></router-outlet>
+<ngb-pagination class="d-flex justify-content-center" [collectionSize]="this.articleCardsList.count" [(page)]="this.page" (pageChange)="pageChanged(page)" [maxSize]="5" [rotate]="true" [boundaryLinks]="true"></ngb-pagination>

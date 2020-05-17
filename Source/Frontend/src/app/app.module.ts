@@ -9,12 +9,13 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 import { AppComponent } from './app.component';
 import { NavbarModule } from './core/navbar/navbar.module';
+import { SidebarModule } from './core/sidebar/sidebar.module';
 import { NewsModule } from "./news/news.module";
 import { AppRoutingModule } from './app-routing.module';
 import { ConfigurationService } from './core/services/configuration//configuration.service';
-import { CategoriesResolver } from './core/services/resolvers/categories.resolver'
 import { ArticleViewService } from './core/services/view/article-view.service';
 import { ArticleRepositoryService } from './core/services/repository/article-repository.service';
+import { SidebarComponent } from './core/sidebar/sidebar.component';
 
 export function configServiceFactory(config: ConfigurationService) {
    return () => config.load();
@@ -32,6 +33,7 @@ export function configServiceFactory(config: ConfigurationService) {
       HttpClientModule,
       BrowserAnimationsModule,
       NavbarModule,
+      SidebarModule,
       NewsModule
    ],
    providers: [
@@ -43,7 +45,6 @@ export function configServiceFactory(config: ConfigurationService) {
          multi: true
       },
       KeyValuePipe,
-      CategoriesResolver,
       ArticleRepositoryService
    ],
    bootstrap: [

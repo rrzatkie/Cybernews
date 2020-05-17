@@ -1,19 +1,28 @@
-<mat-toolbar class="wrapper">
-  <div class="logo">
-    <a [routerLink]="['/home']" [state]="{ categories: this.categories}">
-      <img src="../../../assets/img/logo/logo-dark.jpg"/>
-    </a>
+<nav id="colorlib-main-menu" role="navigation">
+  <ul>
+    <li id="home"><a [routerLink]="['/home']">Home</a></li>
+    <li id="about"><a [routerLink]="['/about']">About</a></li>
+    <li id="categories"><a [routerLink]="['/categories']">Categories</a></li>
+    <li id="keywords"><a [routerLink]="['/keywords']">Keywords</a></li>
+    <li id="archive"><a [routerLink]="['/archive']">Archive</a></li>
+    <li id="contact"><a [routerLink]="['/contact']">Contact</a></li>
+  </ul>
+</nav>
+
+<div class="colorlib-footer">
+  <h1 id="colorlib-logo" class="mb-4"><a [routerLink]="['/home']" style="background-image: url(assets/images/bg_1.jpg);">Cyber <span>News</span></a></h1>
+  <div class="mb-4">
+    <h3>Subscribe for newsletter</h3>
+    <form action="#" class="colorlib-subscribe-form">
+      <div class="form-group d-flex">
+        <div class="icon"><span class="icon-paper-plane"></span></div>
+        <input type="text" class="form-control" placeholder="Enter Email Address">
+      </div>
+    </form>
   </div>
-  <div class="toolbar-items">
-    <button [routerLink]="['/home']" mat-button>Home</button>
-    <button mat-button [matMenuTriggerFor]="menu">Categories</button>
-    <mat-menu #menu="matMenu">
-        <button mat-menu-item *ngFor="let category of this.categories" [routerLink]="'/category/' + category.categoryId" routerLinkActive="active">
-          {{category.categoryNameToDisplay}}
-        </button>
-    </mat-menu>
-    <button mat-button>Archives</button>
-    <button mat-button>Contact</button>
-  </div>
-</mat-toolbar>
+  <footer class="container-fluid footer">
+    <p class="pfooter">© Copyright <a [routerLink]="['/home']">Cybernews</a> </p>
+  </footer>
+</div>
+
 

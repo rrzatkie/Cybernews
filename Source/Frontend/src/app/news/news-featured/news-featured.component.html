@@ -1,15 +1,4 @@
-<div class="box">
-  <div class="section-title">
-    <p>Latest</p>
-  </div>
-  <mat-tab-group class="section-content">
-    <div *ngFor="let item of this.slides | keyvalue">
-      <div *ngIf="item.value.length > 0">
-        <mat-tab class="tabs" [label]="getCategoryName(item.key)">
-          <news-slider [slides]="item.value"></news-slider>
-        </mat-tab>
-      </div>
-    </div>
-  </mat-tab-group>
-  <mat-divider></mat-divider>
+<p >Tekst</p>
+<div *ngIf="this.articleCardsList" class="box">
+  <app-news-cards [articleCardsList]="this.articleCardsList" ></app-news-cards>
 </div>

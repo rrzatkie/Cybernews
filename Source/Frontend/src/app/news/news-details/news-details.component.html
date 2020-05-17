@@ -1,29 +1,48 @@
-<mat-card *ngIf="this.articleDetails">
-  <mat-card-header>
-    <p>{{this.articleDetails.articleTitle}}</p>
-  </mat-card-header>
-  <mat-card-content>
-    <img mat-card-image [src]="this.articleDetails.articleImgUrl" default="assets/img/slides/default-4.jpeg" [alt]="this.articleDetails.articleTitle">
-    <mat-chip-list>
-      <mat-chip *ngFor="let keyword of this.articleDetails.articleKeywords">
-        <a [routerLink]="['/keyword/' + keyword.keywordId]" (click)="handleRouteLink()">
-          {{keyword.keywordSlug}}
-        </a>
-      </mat-chip>
-    </mat-chip-list>
-  </mat-card-content>
-  <mat-card-actions>
-    <a [href]="this.articleDetails.articleUrl"
-      mat-button
-      color="primary"
-      isRoundButton="true">
-        Read article
-    </a>
-    <button
-      mat-button
-      (click)="handleCloseButton()"
-      color="warn">
-      Close
-    </button>
-  </mat-card-actions>
-</mat-card>
+<div *ngIf="this.articleDetails">
+  <h1 class="mb-3">{{this.articleDetails.article.articleTitle}}</h1>
+  <div class="meta-wrap">
+    <p class="meta">
+      <span><i class="icon-calendar ml-2 mr-1"></i>{{this.articleDetails.article.articleDateCreated}}</span>
+      <span><i class="icon-comment2 ml-2 mr-1"></i>{{this.articleDetails.article.commentsCount}}</span>
+      <span><i class="icon-thumb_up ml-2 mr-1"></i>{{this.articleDetails.article.likesCount}}</span>
+    </p>
+  </div>
+  <p>
+      <img [src]="this.articleDetails.article.articleImgUrl" alt="" class="img-fluid">
+  </p>
+  <div class="meta-wrap">
+    <p style="text-align: center;">
+      <a style="border: #48caf7 2px solid;  color:black" [href]="this.articleDetails.article.articleUrl" target="_blank" class="btn btn-lg">
+        Read article <span class="ion-ios-arrow-forward"></span>
+      </a>
+    </p>
+      <h4 class="mb-3">
+        Categories:
+      </h4>
+      <p class="meta-categories">
+        <span *ngFor="let category of this.articleDetails.article.articleCategories">
+          <a [routerLink]="['/category/' + category.categoryId]">
+            <i class="icon-folder-o mr-2"></i>{{category.categoryNameToDisplay}}
+          </a>
+        </span>
+      </p>
+      <h4 class="mb-3">
+        Keywords:
+      </h4>
+      <div class="tagcloud">
+          <a *ngFor="let keyword of this.keywords" class="tag-cloud-link" [routerLink]="['/keyword/' + keyword.keywordId]" >{{keyword.keywordSlug}}</a>
+      </div>
+  </div>
+  <div class="pt-5 mt-5">
+      <h3 class="mb-5 font-weight-bold">Similar Articles</h3>
+      <div *ngFor="let similarArticle of this.similarArticles" class="block-21 mb-4 d-flex">
+          <a class="blog-img mr-4" [ngStyle]="{'background-image': 'url(' + similarArticle.article.articleImgUrl +')'}"></a>
+          <div class="text">
+            <h3 class="heading"><a href="similarArticle.article.articleUrl">{{similarArticle.article.articleTitle}}</a></h3>
+            <div class="meta">
+              <div><a href="#"><span class="icon-calendar"></span>{{similarArticle.article.articleDateCreated}}</a></div>
+            </div>
+          </div>
+        </div>
+  </div>
+</div>
