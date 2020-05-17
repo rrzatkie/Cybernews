@@ -5,6 +5,10 @@ from datetime import datetime
 import requests
 import json
 
+from shared.file_helper import file_helper
+from shared.logger import logger_init
+
+cybernewsArticlesApiUrl = 'http://localhost:4201/api/ArticlesUI'
 
 class ArticleDto:
     def __init__(  self,
@@ -35,34 +39,22 @@ def addArticles(apiUrl, articles):
 
     return response.status_code
 
-def get_newest_file(fn_list):
-    dates = []
-    for f in fn_list:
-        match = re.search("([0-9]{2}-[0-9]{2}-[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2})", f)
-        if(match is not None):
-            dates.append({'fileName': f, 'date': match.group()})
-    
-    dates = list(map(lambda x: {'fileName': x['fileName'], 'date': datetime.strptime(x['date'], "%m-%d-%Y-%H-%M-%S")}, dates))
-    dates.sort(key=lambda x: x['date'], reverse=True)
-    return dates[0]['fileName']
+def addSimilarity(apiUrl, similarity):
+    url = "{}/similarity/add".format(apiUrl)
+    headers = {'Content-Type' : 'application/json'}
+
+    jsonString = json.dumps(similarity)
+    response = requests.post(url, data=jsonString, headers=headers)
+
+    return response.status_code
 
 def main():
-    fn_list = os.listdir('/home/rrzatkie/Work/Cybernews/Source/Backend/Cybernews/Cybernews.ML/data/after-nlp-pipeline')
-    fn_newest = get_newest_file(fn_list)
+    logger = logger_init('export')
+    helper = file_helper(logger)
 
-    f = open('/home/rrzatkie/Work/Cybernews/Source/Backend/Cybernews/Cybernews.ML/data/after-nlp-pipeline/{}'.format(fn_newest), 'r', encoding="utf-8")
-    df = pandas.read_csv(f, 
-        index_col=0, 
-        converters={'text_scraped_words': lambda x: x[1:-1].replace("'", "").split(', '),
-            'text_lemmatized': lambda x: x[1:-1].replace("'", "").split(', '),
-            'text_ner': lambda x: x[1:-1].replace("'", "").split(', ')
-        }
-    )
-    f.close()
+    df = helper.load_state('classification', 'df_result', helper.VarType.DATAFRAME)
 
-    print("Successfully imported file: {}".format(fn_newest))
-
-    cybernewsArticlesApiUrl = 'http://localhost:4201/api/ArticlesUI'
+    # df = df[0:20]
     begin = 0
     end = len(df.values)
     step = 1024
@@ -74,9 +66,14 @@ def main():
         articles = []
         for index, article in df_window.iterrows():
             keywords = []
-            for keyword in article['text_ner']:
-                keyword = keyword.split(':')
-                keywords.append(keyword[0])
+            for keyword in article['text_keywords_spacy']:
+                keyword = keyword.strip('()').split(', ')
+                keywords.append(
+                    {
+                        "name": keyword[0],
+                        "value": float(keyword[1])
+                    }
+                )
 
             articleDto = ArticleDto(
                 author= 'Cyware',
@@ -88,8 +85,12 @@ def main():
                 keywords=keywords
             )
             articles.append(articleDto)
-        print("Sending rows from {} to {}".format(i, i+step))
+        logger.info("Sending rows from {} to {}".format(i, i+step))
         addArticles(cybernewsArticlesApiUrl, articles)
 
 if __name__ == '__main__':
     main()
+    # similarity = {"articleId_1":151, "articleId_2":152, "value":0.4}
+    # addSimilarity(cybernewsArticlesApiUrl, similarity)
+    # similarity = {"articleId_1":152, "articleId_2":151, "value":0.4}
+    # addSimilarity(cybernewsArticlesApiUrl, similarity)
