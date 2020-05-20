@@ -36,7 +36,6 @@ namespace Cybernews.DAL.Data
 
             return stringBuilder.ToString().Normalize(NormalizationForm.FormC);
         }
-
     }
 
     public class CybernewsContext : DbContext
@@ -45,7 +44,6 @@ namespace Cybernews.DAL.Data
             : base(options)
         {
         }
-        
 
         public DbSet<Article> Articles { get; set; }
         public DbSet<Category> Categories { get; set; }
@@ -53,7 +51,8 @@ namespace Cybernews.DAL.Data
         public DbSet<ArticleKeyword> ArticleKeywords { get; set; }
         public DbSet<ArticleCategory> ArticleCategories { get; set; }
         public DbSet<ArticlesSimilarity> ArticlesSimilarities { get; set; }
-
+        public DbSet<ArticleComment> ArticleComments { get; set; }
+        public DbSet<ArticleLike> ArticleLikes { get; set; }
         
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -81,6 +80,28 @@ namespace Cybernews.DAL.Data
                 .HasOne(ak => ak.Keyword)
                 .WithMany(k => k.ArticleKeywords)
                 .HasForeignKey(ak => ak.KeywordId);
+
+            modelBuilder.Entity<ArticleLike>()
+                .HasKey(al => new { al.UserId, al.ArticleId });  
+            modelBuilder.Entity<ArticleLike>()
+                .HasOne(ak => ak.Article)
+                .WithMany(a => a.ArticleLikes)
+                .HasForeignKey(al => al.ArticleId);  
+            modelBuilder.Entity<ArticleLike>()
+                .HasOne(al => al.User)
+                .WithMany(u => u.ArticleLikes)
+                .HasForeignKey(al => al.UserId);
+
+            modelBuilder.Entity<ArticleComment>()
+                .HasKey(ac => new { ac.UserId, ac.ArticleId });  
+            modelBuilder.Entity<ArticleComment>()
+                .HasOne(ac => ac.Article)
+                .WithMany(a => a.ArticleComments)
+                .HasForeignKey(ac => ac.ArticleId);  
+            modelBuilder.Entity<ArticleComment>()
+                .HasOne(ac => ac.User)
+                .WithMany(u => u.ArticleComments)
+                .HasForeignKey(ac => ac.UserId);
 
             modelBuilder.Entity<ArticlesSimilarity>()
                 .HasKey(x => x.Id);
