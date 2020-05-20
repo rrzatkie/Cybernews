@@ -39,7 +39,8 @@ namespace Cybernews.CybernewsApi
             services.AddDbContext<CybernewsContext>(x => x.UseSqlServer(conf));
             services.AddAutoMapper(typeof(Startup));
 
-            services.AddScoped<IArticlesService,ArticlesService>();
+            services.AddScoped<IArticlesUIService,ArticlesUIService>();
+            services.AddScoped<IArticlesPipelineService,ArticlesPipelineService>();
             
             services.AddCors(options =>
             {

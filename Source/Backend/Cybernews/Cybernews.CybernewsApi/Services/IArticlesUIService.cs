@@ -6,7 +6,7 @@ using Cybernews.DAL.Data.Entities;
 
 namespace Cybernews.CybernewsApi.Services
 {
-    public interface IArticlesService
+    public interface IArticlesUIService
     {
         Task<ServiceResponse<Dtos.ArticleCardsListDto>> GetArticleCards(PaginationOptionsDto paginationOptions, QueryDto query);
         Task<ServiceResponse<List<Dtos.ArticleCardDto>>> GetTopArticles(QueryDto query);
@@ -17,10 +17,5 @@ namespace Cybernews.CybernewsApi.Services
         Task<ServiceResponse<List<Dtos.CategorySummaryDto>>> GetTopCategories(QueryDto query);
         Task<ServiceResponse<List<Dtos.KeywordDto>>> GetAllKeywords();
         Task<ServiceResponse<List<Dtos.CategoryDto>>> GetAllCategories();
-        Task<ServiceResponse<List<int>>> AddArticles(ArticleDto[] articles);
-        Task<ServiceResponse<List<int>>> AddSimilarity(ArticlesSimilarityDto articles);
-        Task<ServiceResponse<List<ArticleKeyword>>> UpdateKeywords(UpdateKeywordDto updateKeywordDto);
-        Task<ServiceResponse<List<ArticleCategory>>> UpdateCategories(UpdateCategoryDto updateCategoryDto);
-
     }
 }
