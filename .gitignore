@@ -14,3 +14,5 @@ Notebooks/logs
 /Source/Backend/Cybernews/CybernewsML/old/.ipynb_checkpoints/
 /Source/Backend/Cybernews/CybernewsML/cybernews_spiders/cybernews_spiders/__pycache__/
 /Source/Backend/Cybernews/CybernewsML/cybernews_spiders/cybernews_spiders/spiders/__pycache__/
+/Source/Backend/Cybernews/CybernewsML/plots/
+*.log
