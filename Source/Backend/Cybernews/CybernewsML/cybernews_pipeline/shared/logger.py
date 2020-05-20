@@ -1,11 +1,12 @@
 import logging
 
-def logger_init(logger_name="logs"):
+
+def logger_init(rootDir, logger_name="logs"):
     # create logger with given name
     logger = logging.getLogger(logger_name)
     logger.setLevel(logging.DEBUG)
     # create file handler which logs even debug messages
-    fh = logging.FileHandler('logs/{}.log'.format(logger_name))
+    fh = logging.FileHandler('{}/logs/{}.log'.format(rootDir ,logger_name)) 
     fh.setLevel(logging.DEBUG)
     # create console handler with a higher log level
     ch = logging.StreamHandler()

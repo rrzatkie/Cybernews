@@ -168,7 +168,7 @@ class cleaner:
         if self.texts is not None: helper.save_state(class_name, 'texts', self.texts, file_helper.VarType.OBJECT)
         if self.docs is not None: helper.save_state(class_name, 'docs', self.docs, file_helper.VarType.OBJECT)
 
-        path = 'data/{}/{}-{}.csv'.format(path, path, datetime.now().strftime("%m-%d-%Y-%H-%M-%S"))
+        path = '{}/{}-{}.csv'.format(path, path, datetime.now().strftime("%m-%d-%Y-%H-%M-%S"))
         if self.df_result is not None: 
             helper.save_df_to_csv(self.df_result, path)
             helper.save_state(class_name, 'df_result', self.df_result, file_helper.VarType.DATAFRAME)

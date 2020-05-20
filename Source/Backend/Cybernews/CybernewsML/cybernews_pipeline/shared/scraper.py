@@ -7,7 +7,7 @@ import pandas as pd
 
 from datetime import datetime
 
-from shared.file_helper import file_helper
+from cybernews_pipeline.shared.file_helper import file_helper
 
 class scraper:
     def __init__(self, logger):
@@ -72,7 +72,7 @@ class scraper:
         if self.df is not None: helper.save_state(class_name, 'df', self.df, file_helper.VarType.DATAFRAME)
         if self.scraped_articles is not None: helper.save_state(class_name, 'scraped_articles', self.scraped_articles, file_helper.VarType.OBJECT)
 
-        path = 'data/{}/{}-{}.csv'.format(path, path, datetime.now().strftime("%m-%d-%Y-%H-%M-%S"))
+        path = '{}/{}-{}.csv'.format(path, path, datetime.now().strftime("%m-%d-%Y-%H-%M-%S"))
         if self.df_result is not None: 
             helper.save_df_to_csv(self.df_result, path)
             helper.save_state(class_name, 'df_result', self.df_result, file_helper.VarType.DATAFRAME)

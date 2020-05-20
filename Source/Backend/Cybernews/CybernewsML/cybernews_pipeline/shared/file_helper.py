@@ -35,9 +35,10 @@ class file_helper:
         OBJECT = 2,
         KERAS_MODEL = 3
 
-    def __init__(self, logger, pickles_path='pickles/'):
+    def __init__(self, logger, pickles_path='pickles/', data_path='data/'):
         self.logger = logger
         self.pickles_path = pickles_path
+        self.data_path = data_path
 
     def get_newest_file(self, path):
         fn_list = os.listdir(path)
@@ -66,7 +67,8 @@ class file_helper:
         else:
             raise TypeError
 
-    def save_df_to_csv(self, df, path):
+    def save_df_to_csv(self, df, path=None):
+        if path is None: path = os.path.join(self.data_path, path)
         if(df is not None):
             self.logger.info("Saving df at: {}".format(path))
             with open(path, 'w', encoding="utf-8") as f:
@@ -83,6 +85,7 @@ class file_helper:
             return None
 
     def load_df_from_csv(self, path):
+        if path is None: path = os.path.join(self.data_path, path)
         if(self.exists(path)):
             self.logger.debug("Loading newest file from {}".format(path))
             with open(self.get_newest_file(path), 'r', encoding="utf-8") as f:

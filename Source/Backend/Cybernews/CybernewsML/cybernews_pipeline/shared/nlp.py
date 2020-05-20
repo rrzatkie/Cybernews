@@ -21,7 +21,7 @@ from gensim.corpora import Dictionary
 
 
 
-from shared.file_helper import file_helper
+from cybernews_pipeline.shared.file_helper import file_helper
 
 class NlpMode(Enum):
     ALL = 1
@@ -57,49 +57,83 @@ class nlp:
         self.gensim_bigram_model = None
         self.gensim_trigram_model= None
         self.gensim_corpus_tfidf = None
+        self.gensim_vectorizer_tfidf = None
         self.gensim_w2v_model = None
         self.gensim_docs_vectors_w2v = None
 
-    def gensim_pipeline_bow(self, texts):
+    def stem_words(self, texts):
+        self.logger.info('Started steming batch of texts.')
+
         stemmer = SnowballStemmer('english')
-
-        docs = [
-            [stemmer.stem(word) for word in utils.tokenize(doc) if word not in self.stop_words]
-            for doc in texts
-        ]
-        bigram_model = models.Phrases(docs)
-        docs_bigram = [bigram_model[doc] for doc in docs]
+        docs = []
+        if(self.stop_words is not None):
+            docs = [
+                [stemmer.stem(word) for word in utils.tokenize(doc) if word not in self.stop_words]
+                for doc in texts
+            ]
         
-        trigram_model = models.Phrases(docs_bigram)
-        docs_trigram = [trigram_model[doc] for doc in docs_bigram]
+        self.logger.info('Finished steming batch of texts.')
 
-        docs = docs_trigram
-        
-        dictionary = Dictionary(docs)
-        corpus = [dictionary.doc2bow(doc) for doc in docs]
+        return docs
+
+    def gensim_trigrams(self, docs, bigram_model=None, trigram_model=None):
+        if((trigram_model is None) or (bigram_model is None)):
+            bigram_model = models.Phrases(docs)
+            docs_bigram = [bigram_model[doc] for doc in docs]
+            
+            trigram_model = models.Phrases(docs_bigram)
+            docs_trigram = [trigram_model[doc] for doc in docs_bigram]
+
+            self.gensim_bigram_model = bigram_model
+            self.gensim_trigram_model = trigram_model
+        else:
+            docs_bigram = [bigram_model[doc] for doc in docs]
+            docs_trigram = [trigram_model[doc] for doc in docs_bigram]
+            
+        return docs_trigram
+
+    def gensim_doc2bow(self, docs,dictionary=None):
+        if(dictionary is None):
+            dictionary = Dictionary(docs)
+            corpus = [dictionary.doc2bow(doc) for doc in docs]
+
+            self.gensim_dictionary = dictionary
+            self.gensim_corpus = corpus
+        else:
+            corpus = [dictionary.doc2bow(doc) for doc in docs]
+
+        return corpus
+
+
+    def gensim_pipeline_bow(self, texts):
+        docs = self.gensim_trigrams(
+            self.stem_words(texts)
+        )
+
+        self.gensim_doc2bow(docs)
 
         self.gensim_docs = docs
-        self.gensim_bigram_model = bigram_model
-        self.gensim_trigram_model = trigram_model
-        self.gensim_dictionary = dictionary
-        self.gensim_corpus = corpus
 
-        return corpus, dictionary
+        return docs
   
-    def gensim_transform_tfidf(self, corpus, dictionary):
-        vectorizer = models.TfidfModel(
-            corpus = corpus,
-            dictionary = dictionary
-        )
-        
-        corpus_tfidf = vectorizer[corpus]
-        self.gensim_corpus_tfidf = corpus_tfidf
+    def gensim_transform_tfidf(self, corpus, dictionary, vectorizer=None):
+        if(vectorizer is None):
+            vectorizer = models.TfidfModel(
+                corpus = corpus,
+                dictionary = dictionary
+            )
+            
+            corpus_tfidf = vectorizer[corpus]
+            self.gensim_corpus_tfidf = corpus_tfidf
+            self.gensim_vectorizer_tfidf = vectorizer
+        else:
+            corpus_tfidf = vectorizer[corpus]
 
         return corpus_tfidf
     
-    def gensim_transform_w2v(self, w2v_model, docs, corpus_tfidf):
+    def gensim_transform_w2v(self, w2v_model, corpus_tfidf, dictionary):
         word_vectors = np.array([
-            [w2v_model[self.gensim_dictionary.id2token[w_id]]*value for w_id, value in doc_tfidf] 
+            [w2v_model[dictionary.id2token[w_id]]*value for w_id, value in doc_tfidf] 
             for doc_tfidf in corpus_tfidf
         ])
 
@@ -110,7 +144,7 @@ class nlp:
 
         self.gensim_docs_vectors_w2v = doc_vectors
 
-        return doc_vectors
+        return np.array(doc_vectors)
 
     def spacy_pipeline_bow(self, texts):
         docs = []
@@ -226,14 +260,14 @@ class nlp:
 
         return model
 
-    def load_state(self, mode):
+    def load_state(self, mode, helper):
         self.logger.info("Try to load state with mode {}...".format(mode.name))
-        helper = file_helper(self.logger)
+        # helper = file_helper(self.logger)
         class_name = 'nlp'
         
         self.df = helper.load_state(class_name, 'df', file_helper.VarType.DATAFRAME)
         self.texts = helper.load_state(class_name, 'texts', file_helper.VarType.OBJECT)
-        self.stop_words = helper.load_state(class_name, 'stop_words', file_helper.VarType.OBJECT, path='data/downloaded/stopwords')
+        self.stop_words = helper.load_state(class_name, 'stop_words', file_helper.VarType.OBJECT, path='{}/downloaded/stopwords'.format(helper.data_path))
 
         if(mode in [NlpMode.SPACY, NlpMode.ALL]): 
             # TODO: Spacy object has to be pickled in other way
@@ -250,6 +284,7 @@ class nlp:
             self.gensim_bigram_model = helper.load_state(class_name, 'gensim_bigram_model', file_helper.VarType.OBJECT) 
             self.gensim_trigram_model= helper.load_state(class_name, 'gensim_trigram_model', file_helper.VarType.OBJECT) 
             self.gensim_corpus_tfidf = helper.load_state(class_name, 'gensim_corpus_tfidf', file_helper.VarType.OBJECT) 
+            self.gensim_vectorizer_tfidf = helper.load_state(class_name, 'gensim_vectorizer_tfidf', file_helper.VarType.OBJECT) 
             self.gensim_w2v_model = helper.load_state(class_name, 'gensim_w2v_model', file_helper.VarType.OBJECT) 
             self.gensim_docs_vectors_w2v = helper.load_state(class_name, 'gensim_docs_vectors_w2v', file_helper.VarType.OBJECT) 
 
@@ -271,10 +306,11 @@ class nlp:
             if self.gensim_bigram_model is not None: helper.save_state(class_name, 'gensim_bigram_model', self.gensim_bigram_model, file_helper.VarType.OBJECT) 
             if self.gensim_trigram_model is not None: helper.save_state(class_name, 'gensim_trigram_model', self.gensim_trigram_model, file_helper.VarType.OBJECT) 
             if self.gensim_corpus_tfidf is not None: helper.save_state(class_name, 'gensim_corpus_tfidf', self.gensim_corpus_tfidf, file_helper.VarType.OBJECT) 
+            if self.gensim_vectorizer_tfidf is not None: helper.save_state(class_name, 'gensim_vectorizer_tfidf', self.gensim_vectorizer_tfidf, file_helper.VarType.OBJECT) 
             if self.gensim_w2v_model is not None: helper.save_state(class_name, 'gensim_w2v_model', self.gensim_w2v_model, file_helper.VarType.OBJECT) 
             if self.gensim_docs_vectors_w2v is not None: helper.save_state(class_name, 'gensim_docs_vectors_w2v', self.gensim_docs_vectors_w2v, file_helper.VarType.OBJECT) 
 
-        path = 'data/{}/{}-{}.csv'.format(path, path, datetime.now().strftime("%m-%d-%Y-%H-%M-%S"))
+        path = '{}/{}-{}.csv'.format(path, path, datetime.now().strftime("%m-%d-%Y-%H-%M-%S"))
         if self.df_result is not None: 
             helper.save_df_to_csv(self.df_result, path)
             helper.save_state(class_name, 'df_result', self.df_result, file_helper.VarType.DATAFRAME)
@@ -296,7 +332,7 @@ class nlp:
                 if self.gensim_corpus is None: self.gensim_pipeline_bow(self.texts)
                 if self.gensim_corpus_tfidf is None: self.gensim_transform_tfidf(self.gensim_corpus, self.gensim_dictionary)
                 if self.gensim_w2v_model is None: self.init_gensim_w2v(self.gensim_docs)
-                if self.gensim_docs_vectors_w2v is None: self.gensim_transform_w2v(self.gensim_w2v_model, self.gensim_docs, self.gensim_corpus_tfidf)
+                if self.gensim_docs_vectors_w2v is None: self.gensim_transform_w2v(self.gensim_w2v_model, self.gensim_docs, self.gensim_corpus_tfidf, self.gensim_dictionary)
 
             if self.df_result is None: self.merge_results()
         except :

@@ -25,7 +25,7 @@ from gensim import matutils
 from enum import Enum
 from datetime import datetime
 
-from shared.file_helper import file_helper
+from cybernews_pipeline.shared.file_helper import file_helper
 
 class ClassificationMode(Enum):
     BOW = 1
@@ -274,9 +274,10 @@ class classification:
         if self.x_val_w2v is not None: helper.save_state(class_name, 'x_val_w2v', self.x_val_w2v, file_helper.VarType.OBJECT)
         if self.y_test is not None: helper.save_state(class_name, 'y_test', self.y_test, file_helper.VarType.OBJECT)    
         if self.y_train is not None: helper.save_state(class_name, 'y_train', self.y_train, file_helper.VarType.OBJECT)    
-        if self.y_val is not None: helper.save_state(class_name, 'y_val', self.y_val, file_helper.VarType.OBJECT)
+        if self.y_val is not None: helper.save_state(class_name, 'y_val', self.y_val, file_helper.VarType.OBJECT)    
+        if self.labels_encoder is not None: helper.save_state(class_name, 'labels_encoder', self.labels_encoder, file_helper.VarType.OBJECT)
 
-        path = 'data/{}/{}-{}.csv'.format(path, path, datetime.now().strftime("%m-%d-%Y-%H-%M-%S"))
+        path = '{}/{}-{}.csv'.format(path, path, datetime.now().strftime("%m-%d-%Y-%H-%M-%S"))
         if self.df_result is not None: 
             helper.save_df_to_csv(self.df_result, path)
             helper.save_state(class_name, 'df_result', self.df_result, file_helper.VarType.DATAFRAME)
@@ -286,11 +287,12 @@ class classification:
         helper = file_helper(self.logger)
         class_name = 'classification'
 
-        self.keras_mlp_history = helper.load_state(class_name, 'keras_mlp_history', file_helper.VarType.OBJECT)
+        # self.keras_mlp_history = helper.load_state(class_name, 'keras_mlp_history', file_helper.VarType.OBJECT)
         self.y_test = helper.load_state(class_name, 'y_test', file_helper.VarType.OBJECT)
         self.y_train = helper.load_state(class_name, 'y_train', file_helper.VarType.OBJECT)
         self.y_val = helper.load_state(class_name, 'y_val', file_helper.VarType.OBJECT)
-        
+        self.labels_encoder = helper.load_state(class_name, 'labels_encoder', file_helper.VarType.OBJECT)
+
         if(mode == ClassificationMode.BOW):
             self.keras_mlp_bow = helper.load_state(class_name, 'keras_mlp_bow.h5', file_helper.VarType.KERAS_MODEL)
             self.x_test_bow = helper.load_state(class_name, 'x_test_bow', file_helper.VarType.OBJECT)

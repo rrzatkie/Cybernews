@@ -8,7 +8,7 @@ import json
 from shared.file_helper import file_helper
 from shared.logger import logger_init
 
-cybernewsArticlesApiUrl = 'http://localhost:4201/api/ArticlesUI'
+cybernewsArticlesApiUrl = 'http://localhost:4201/api/pipeline'
 
 class ArticleDto:
     def __init__(  self,
@@ -28,7 +28,7 @@ class ArticleDto:
         self.keywords = keywords
 
 def addArticles(apiUrl, articles):
-    url = "{}/article/add".format(apiUrl)
+    url = "{}/articles/add".format(apiUrl)
     headers = {'Content-Type' : 'application/json'}
     
     objStrs = []
@@ -40,7 +40,7 @@ def addArticles(apiUrl, articles):
     return response.status_code
 
 def addSimilarity(apiUrl, similarity):
-    url = "{}/similarity/add".format(apiUrl)
+    url = "{}/similarities/add".format(apiUrl)
     headers = {'Content-Type' : 'application/json'}
 
     jsonString = json.dumps(similarity)
@@ -54,10 +54,9 @@ def main():
 
     df = helper.load_state('classification', 'df_result', helper.VarType.DATAFRAME)
 
-    # df = df[0:20]
     begin = 0
     end = len(df.values)
-    step = 1024
+    step = 256
     for i in range(begin, end, step):
         df_window = df[i:i+step]
         if(len(df_window) <= 0):
