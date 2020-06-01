@@ -29,7 +29,7 @@ namespace Cybernews.CybernewsApi.Services
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<ServiceResponse<List<Article>>> GetArticles()
+        public async Task<ServiceResponse<List<Article>>> GetArticles(PaginationOptionsDto paginationOptions)
         {
             var serviceResponse = new ServiceResponse<List<Article>>()
             {
@@ -38,7 +38,12 @@ namespace Cybernews.CybernewsApi.Services
 
             var articlesQuery = this.context.Articles;
 
-            var articles = await articlesQuery.Where(x => !x.PipelineRunAt.HasValue).Take(1).ToListAsync();
+            var nToSkip = (paginationOptions.PageNumber - 1) * paginationOptions.Limit;
+            var articles = await articlesQuery
+                .Where(x => !x.PipelineRunAt.HasValue)
+                .Skip(nToSkip)
+                .Take(3)
+                .ToListAsync();
 
             serviceResponse.Data = articles;
 
@@ -278,7 +283,48 @@ namespace Cybernews.CybernewsApi.Services
 
             return serviceResponse;
         }
-    
+
+        public async Task<ServiceResponse<List<string>>> GetPendingArticles(string url, PaginationOptionsDto paginationOptions)
+        {
+            var serviceResponse = new ServiceResponse<List<string>>()
+            {
+                Data = new List<string>()
+            };
+
+            var articleQuery = this.context.Articles;
+            var article = articleQuery.SingleOrDefaultAsync(x => x.Url == url);
+
+            var articlesSimilarityQuery = this.context.ArticlesSimilarities;
+            if(article != null)
+            {
+                var urls = await articlesSimilarityQuery
+                    .Where(x => x.Article_1.Url == url)
+                    .Select(x=>x.Article_2.Url)
+                    .ToListAsync();
+
+                urls.AddRange(
+                    await articlesSimilarityQuery
+                        .Where(x => x.Article_2.Url == url)
+                        .Select(x=> x.Article_1.Url)
+                        .ToListAsync()
+                );
+                
+                var nToSkip = (paginationOptions.PageNumber - 1) * paginationOptions.Limit;
+                serviceResponse.Data = await articleQuery
+                    .Where(x => !urls.Contains(x.Url))
+                    .Select(x => x.Url)
+                    .Skip(nToSkip)
+                    .Take(paginationOptions.Limit)
+                    .ToListAsync();  
+            }
+            else
+            {
+                serviceResponse.Success = false;
+                serviceResponse.Message = "Failed to find Article with given url"; 
+            }
+
+            return serviceResponse;
+        }
     }
 
     class DistinctItemComparer : IEqualityComparer<PipelineKeywordDto> {

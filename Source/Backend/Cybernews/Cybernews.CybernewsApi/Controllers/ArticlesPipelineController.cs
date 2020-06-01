@@ -22,9 +22,9 @@ namespace Cybernews.CybernewsApi.Controllers
         }
 
         [HttpGet("articles")]
-        public async Task<ActionResult> GetArticles()
+        public async Task<ActionResult> GetArticles([FromQuery] PaginationOptionsDto paginationOptions)
         {
-            return Ok(await service.GetArticles());
+            return Ok(await service.GetArticles(paginationOptions));
         }
 
         [HttpPost("articles/add")]
@@ -45,18 +45,22 @@ namespace Cybernews.CybernewsApi.Controllers
             return Ok(await service.UpdateCategories(updateCategoryDto));
         }
 
-
         [HttpPost("articles/keyword")]
         public async Task<ActionResult> UpdateKeyword([FromBody] UpdateKeywordDto updateKeywordDto)
         {
             return Ok(await service.UpdateKeywords(updateKeywordDto));
         }
 
-
         [HttpPost("similarities/add")]
         public async Task<ActionResult> AddSimilarity([FromBody] ArticlesSimilarityDto articlesSimilarity)
         {
             return Ok(await service.AddSimilarity(articlesSimilarity));
+        }
+
+        [HttpGet("similarities/pending")]
+        public async Task<ActionResult> GetPendingArticles([FromQuery] string url, [FromQuery] PaginationOptionsDto paginationOptions)
+        {
+            return Ok(await service.GetPendingArticles(url, paginationOptions));
         }
     }
 }
