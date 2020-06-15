@@ -2,26 +2,20 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 
-import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { MatGridListModule } from '@angular/material/grid-list';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatButtonModule } from '@angular/material/button';
-import { MatTabsModule } from '@angular/material/tabs';
+import { NgbModule, NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
 
 import { NewsCardComponent } from './news-card/news-card.component';
 import { NewsCardsViewComponent } from './news-cards-view/news-cards-view.component';
-import { NewsSliderComponent } from './news-slider/news-slider.component';
 import { NewsFeaturedComponent } from './news-featured/news-featured.component';
-import { NewsCategoriesComponent } from "./news-categories/news-categories.component";
-import { NewsKeywordsComponent } from "./news-keywords/news-keywords.component";
-import { DefaultImageDirective } from './news-slider/default-image.directive';
-import { NewsArchiveComponent } from "./news-archive/news-archive.component";
-import { MatCardModule } from '@angular/material/card';
+import { NewsCategoriesComponent } from './news-categories/news-categories.component';
+import { NewsKeywordsComponent } from './news-keywords/news-keywords.component';
+import { NewsArchiveComponent } from './news-archive/news-archive.component';
+import { NewsSearchComponent } from './news-search/news-search.component';
 import { RouterModule } from '@angular/router';
-import { MatChipsModule } from '@angular/material/chips';
 import { NewsDetailsComponent } from './news-details/news-details.component';
-import { NewsTabsComponent } from './news-tabs/news-tabs.component';
 import { MatchHeightDirective } from './news-cards-view/matchHeight.directive';
+import { FormsModule } from '@angular/forms';
+import { SearchService } from '../core/services/search/search.service';
 
 
 @NgModule({
@@ -29,39 +23,34 @@ import { MatchHeightDirective } from './news-cards-view/matchHeight.directive';
     BrowserModule,
     NgbModule,
     CommonModule,
-    MatGridListModule,
-    MatDividerModule,
+    FormsModule,
     RouterModule,
-    MatButtonModule,
-    MatTabsModule,
-    MatCardModule,
-    MatChipsModule
+    NgbDropdownModule
   ],
   exports: [
     NewsCardComponent,
     NewsCardsViewComponent,
-    NewsSliderComponent,
     RouterModule,
     NewsFeaturedComponent,
     NewsCategoriesComponent,
     NewsKeywordsComponent,
     NewsDetailsComponent,
     NewsArchiveComponent,
-    NewsTabsComponent
+    NewsSearchComponent
   ],
   declarations: [
     NewsCardComponent,
     NewsCardsViewComponent,
-    NewsSliderComponent,
     NewsFeaturedComponent,
     NewsCategoriesComponent,
     NewsKeywordsComponent,
-    DefaultImageDirective,
     MatchHeightDirective,
     NewsDetailsComponent,
     NewsArchiveComponent,
-    NewsTabsComponent
+    NewsSearchComponent
   ],
-  providers: [],
+  providers: [
+    SearchService
+  ],
 })
 export class NewsModule { }

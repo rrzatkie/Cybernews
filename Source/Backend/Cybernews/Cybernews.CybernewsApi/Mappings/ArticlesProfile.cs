@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -6,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using AutoMapper;
 using Cybernews.CybernewsApi.Dtos;
+using Cybernews.CybernewsApi.Dtos.Search;
 using Cybernews.DAL.Data.Entities;
 
 namespace Cybernews.CybernewsApi.Mappings
@@ -69,6 +71,20 @@ namespace Cybernews.CybernewsApi.Mappings
                 .ForMember(x => x.KeywordNameToDisplay, y => y.MapFrom(z => z.Item1.NameToDisplay))
                 .ForMember(x => x.KeywordSlug, y => y.MapFrom(z => z.Item1.Slug))
                 .ForMember(x => x.KeywordValue, y => y.MapFrom(z => z.Item2));
+            
+            CreateMap<Article, SearchArticleDto>()
+                .ForMember(x => x.Id, y => y.MapFrom(z => z.Id))
+                .ForMember(x => x.Title, y => y.MapFrom(z => z.Title));    
+            
+            CreateMap<Keyword, SearchKeywordDto>()
+                .ForMember(x => x.Id, y => y.MapFrom(z => z.Id))
+                .ForMember(x => x.Name, y => y.MapFrom(z => z.NameToDisplay))
+                .ForMember(x => x.Slug, y => y.MapFrom(z => z.Slug));    
+            
+            CreateMap<Category, SearchCategoryDto>()
+                .ForMember(x => x.Id, y => y.MapFrom(z => z.Id))
+                .ForMember(x => x.Name, y => y.MapFrom(z => z.NameToDisplay))
+                .ForMember(x => x.Slug, y => y.MapFrom(z => z.Slug));       
         }
         private DateTime UnixToDatetimeConverter(System.Int32 date)
         {

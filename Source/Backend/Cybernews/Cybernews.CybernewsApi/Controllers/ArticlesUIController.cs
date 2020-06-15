@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Cybernews.CybernewsApi.Controllers
 {
-    [Route("api/ui")]
+    [Route("ui")]
     [ApiController]
     public class ArticlesUIController : ControllerBase
     {

@@ -4,12 +4,14 @@ import { RouterModule } from '@angular/router';
 
 import { SidebarComponent } from './sidebar.component';
 import { BrowserModule } from '@angular/platform-browser';
+import { NewsModule } from 'src/app/news/news.module';
 
 @NgModule({
   imports: [
     BrowserModule,
     CommonModule,
     RouterModule,
+    NewsModule
   ],
   exports: [
     RouterModule,

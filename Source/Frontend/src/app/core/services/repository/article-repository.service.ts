@@ -36,7 +36,7 @@ export class ArticleRepositoryService {
   }
 
   getSlides(categoryId: number): Observable<CybernewsApiResponse> {
-    const url = `${this.articleApiUrl}/slides/${categoryId}`;
+    const url = `${this.articleApiUrl}/ui/slides/${categoryId}`;
     return this.http.get<CybernewsApiResponse>(url, {observe: 'response' })
       .pipe(
         map(response => {
@@ -46,7 +46,7 @@ export class ArticleRepositoryService {
   }
 
   getArticleCards(paginationOptions?: PaginationOptions, searchOptions?: Query): Observable<CybernewsApiResponse> {
-    const url = `${this.articleApiUrl}/articleCards`;
+    const url = `${this.articleApiUrl}/ui/articleCards`;
     const objParams = [];
 
     if (paginationOptions) {
@@ -69,7 +69,7 @@ export class ArticleRepositoryService {
   }
 
   getArticleDetails(id: number): Observable<CybernewsApiResponse> {
-    const url = `${this.articleApiUrl}/articleDetails/${id}`;
+    const url = `${this.articleApiUrl}/ui/articleDetails/${id}`;
 
     return this.http.get<CybernewsApiResponse>(url, {observe: 'response' })
       .pipe(
@@ -80,7 +80,7 @@ export class ArticleRepositoryService {
   }
 
   getTopArticles(searchOptions?: Query): Observable<CybernewsApiResponse> {
-    const url = `${this.articleApiUrl}/articles/top`;
+    const url = `${this.articleApiUrl}/ui/articles/top`;
 
     const objParams = [];
 
@@ -102,7 +102,7 @@ export class ArticleRepositoryService {
 
 
   getArticlesArchive(searchOptions?: Query): Observable<CybernewsApiResponse> {
-    const url = `${this.articleApiUrl}/articles/archive`;
+    const url = `${this.articleApiUrl}/ui/articles/archive`;
 
     const objParams = [];
 
@@ -123,7 +123,7 @@ export class ArticleRepositoryService {
   }
 
   getCategories(): Observable<CybernewsApiResponse> {
-    const url = `${this.articleApiUrl}/categories/all`;
+    const url = `${this.articleApiUrl}/ui/categories/all`;
 
     return this.http.get<CybernewsApiResponse>(url, {observe: 'response' })
       .pipe(
@@ -134,7 +134,7 @@ export class ArticleRepositoryService {
   }
 
   getTopCategories(query: Query): Observable<CybernewsApiResponse> {
-    const url = `${this.articleApiUrl}/categories/top`;
+    const url = `${this.articleApiUrl}/ui/categories/top`;
 
     const objParams = [];
     if (query) {
@@ -153,7 +153,7 @@ export class ArticleRepositoryService {
   }
 
   getTopKeywords(query?: Query): Observable<CybernewsApiResponse> {
-    const url = `${this.articleApiUrl}/keywords/top`;
+    const url = `${this.articleApiUrl}/ui/keywords/top`;
 
     const objParams = [];
     if (query) {
@@ -172,7 +172,7 @@ export class ArticleRepositoryService {
   }
 
   getKeywords(): Observable<CybernewsApiResponse> {
-    const url = `${this.articleApiUrl}/keywords/all`;
+    const url = `${this.articleApiUrl}/ui/keywords/all`;
 
     return this.http.get<CybernewsApiResponse>(url, {observe: 'response' })
       .pipe(

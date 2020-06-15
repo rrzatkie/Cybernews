@@ -36,7 +36,8 @@
               "src/assets/css/icomoon.css",
               "src/assets/css/ionicons.min.css"
             ],
-            "scripts": []
+            "scripts": [
+            ]
           },
           "configurations": {
             "production": {

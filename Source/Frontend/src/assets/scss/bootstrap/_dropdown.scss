@@ -131,6 +131,10 @@
   white-space: nowrap; // prevent links from randomly breaking onto new lines
   background-color: transparent; // For `<button>`s
   border: 0; // For `<button>`s
+  .a {
+    color:black !important;
+    text-decoration: none;
+  }
 
   // Prevent dropdown overflow if there's no padding
   // See https://github.com/twbs/bootstrap/pull/27703
@@ -154,7 +158,7 @@
   &:active {
     color: $dropdown-link-active-color;
     text-decoration: none;
-    @include gradient-bg($dropdown-link-active-bg);
+    @include gradient-bg(lighten($black,80%));
   }
 
   &.disabled,

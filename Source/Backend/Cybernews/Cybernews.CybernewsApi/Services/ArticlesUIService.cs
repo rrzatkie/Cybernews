@@ -138,11 +138,12 @@ namespace Cybernews.CybernewsApi.Services
                                     x.DateCreated<query.DateCreatedTo);
                     break;
             }
-
             
             articles = await q
-                        .Skip(nToSkip).Take(paginationOptions.Limit)
-                        .ToListAsync();
+                .OrderByDescending(x => x.DateCreated)
+                .Skip(nToSkip).Take(paginationOptions.Limit)
+                .ToListAsync();
+                
             var articleCategories = new Dictionary<int, List<Category>>();
             var articleKeywords = new Dictionary<int, List<Tuple<Keyword,float>>>();
             foreach (var article in articles)
@@ -201,9 +202,22 @@ namespace Cybernews.CybernewsApi.Services
             var keywordsValuePairs = keywords.Zip(keywordValues, Tuple.Create).ToList();
             articleKeywords[id] = keywordsValuePairs;
 
+            var articlesSimilaritiesQuery = this.context.ArticlesSimilarities;
+            var similarArticles = await articlesSimilaritiesQuery
+                .Where(x => x.ArticleId_1 == id)
+                .Select(x => new SimilarArticleDto{ Article = this.mapper.Map<ArticleCardDto>(x.Article_2), Similarity = x.Value })
+                .ToListAsync();
+
+            // similarArticles.AddRange(await articlesSimilaritiesQuery
+            //     .Where(x => x.ArticleId_1 == id)
+            //     .Select(x => new SimilarArticleDto{ Article = this.mapper.Map<ArticleCardDto>(x.Article_1), Similarity = x.Value })
+            //     .ToListAsync()
+            // );
+
             serviceResponse.Data.Article = this.mapper.Map<ArticleCardDto>(article);
             serviceResponse.Data.Article.ArticleKeywords = this.mapper.Map<List<Tuple<Keyword,float>>, List<KeywordDto>>(articleKeywords[id]);
             serviceResponse.Data.Article.ArticleCategories = this.mapper.Map<List<Category>, List<CategoryDto>>(articleCategories[id]);
+            serviceResponse.Data.SimilarArticles = similarArticles;
 
             return serviceResponse;
         }

@@ -34,10 +34,6 @@ export class AppComponent implements OnInit {
       dateCreatedTo: dateTo.toUTCString()
     };
 
-    this.artcicleService.getCategories().subscribe((data) => {
-      this.categories = data.data as Category[];
-    });
-
     this.artcicleService.getTopCategories(query).subscribe((data) => {
       this.categoriesSummary = data.data as CategorySummary[];
     });
@@ -63,7 +59,7 @@ export class AppComponent implements OnInit {
     }
     else {
       document.getElementById('burgermenu').classList.add('active');
-      document.body.classList.add('offcanvas')
+      document.body.classList.add('offcanvas');
     }
   }
 }

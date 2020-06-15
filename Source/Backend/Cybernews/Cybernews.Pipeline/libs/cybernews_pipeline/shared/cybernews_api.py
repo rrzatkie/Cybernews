@@ -39,12 +39,12 @@ class UpdateCategoryDto:
 class AddSimilarityDto:
     def __init__(
         self,
-        articleId_1,
-        articleId_2,
+        Url_1,
+        Url_2,
         value
     ):
-        self.articleId_1 = articleId_1
-        self.articleId_2 = articleId_2
+        self.Url_1 = Url_1
+        self.Url_2 = Url_2
         self.value = value
 
 class cybernews_api:
@@ -63,14 +63,28 @@ class cybernews_api:
 
         return json_content['data']
 
+    def addArticles(self, articles):
+        url = "{}/articles/add".format(self.apiUrl)
+        headers = {'Content-Type' : 'application/json'}
+        
+        objStrs = []
+        for article in articles:
+            objStrs.append(article.__dict__)
 
-    def addSimilarity(self, articleId_1, articleId_2, value):
+        jsonString = json.dumps(objStrs)
+        response = requests.post(url, data=jsonString, headers=headers)
+
+        return response.status_code
+
+    def addSimilarity(self, addSimilarityDtos):
         url = "{}/similarities/add".format(self.apiUrl)
         headers = {'Content-Type' : 'application/json'}
 
-        dto = AddSimilarityDto(articleId_1, articleId_2, value)
+        objStrs = []
+        for dto in addSimilarityDtos:
+            objStrs.append(dto.__dict__)
 
-        jsonString = json.dumps(dto.__dict__)
+        jsonString = json.dumps(objStrs)
         response = requests.post(url, data=jsonString, headers=headers)
 
         return response.status_code

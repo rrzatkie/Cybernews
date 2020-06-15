@@ -17,7 +17,7 @@ class pipeline:
         self.w2v_model = self.helper.load_state('nlp', 'gensim_w2v_model',  self.helper.VarType.OBJECT)
 
     def scrap(self, url):
-        s = scraper(self.logger)
+        s = scraper(self.logger, self.helper)
 
         text=""
         if(validators.url(url)):
@@ -29,7 +29,7 @@ class pipeline:
         return text
 
     def extract(self, texts):
-        n = nlp(self.logger)
+        n = nlp(self.logger, self.helper)
         n.load_state(NlpMode.ALL, self.helper)
         n.init_spacy()
         
@@ -48,8 +48,8 @@ class pipeline:
         return (corpus, keywords, doc_vectors)
 
     def classify(self, doc_vectors):
-        c = classification(self.logger)
-        c.load_state(ClassificationMode.W2V)
+        c = classification(self.logger, self.helper)
+        c.load_state(helper=self.helper, mode=ClassificationMode.W2V)
 
         return c.predict(c.keras_mlp_w2v, doc_vectors, c.labels_encoder)
 
@@ -59,7 +59,6 @@ class pipeline:
 
         return s.similarity_measure(article_1, article_2, s.gensim_similarity_matrix)
 
-    
     def run(self):
         api = cybernews_api(self.logger, self.apiUrl)
 
@@ -67,7 +66,6 @@ class pipeline:
         scraped_articles = [self.scrap(entry['url']) for entry in entries]
 
         corpus, keywords, doc_vectors= self.extract(scraped_articles)
-        sim = self.calcSimilarity(corpus[0], corpus[1])
         categoriesList = self.classify(doc_vectors)
 
         for entry, categories in zip(entries, categoriesList):

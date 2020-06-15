@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Cybernews.CybernewsApi.Controllers
 {
-    [Route("api/pipeline")]
+    [Route("pipeline")]
     [ApiController]
     public class ArticlesPipelineController : ControllerBase
     {
@@ -52,9 +52,9 @@ namespace Cybernews.CybernewsApi.Controllers
         }
 
         [HttpPost("similarities/add")]
-        public async Task<ActionResult> AddSimilarity([FromBody] ArticlesSimilarityDto articlesSimilarity)
+        public async Task<ActionResult> AddSimilarity([FromBody] List<ArticlesSimilarityDto> articlesSimilarities)
         {
-            return Ok(await service.AddSimilarity(articlesSimilarity));
+            return Ok(await service.AddSimilarity(articlesSimilarities));
         }
 
         [HttpGet("similarities/pending")]

@@ -11,7 +11,7 @@ namespace Cybernews.CybernewsApi.Services
         Task<ServiceResponse<List<Article>>> GetArticles(PaginationOptionsDto paginationOptions);
         Task<ServiceResponse<List<Article>>> AddArticles(List<ArticleDto> articles);
         Task<ServiceResponse<Article>> UpdateArticle(Article article);
-        Task<ServiceResponse<List<ArticlesSimilarity>>> AddSimilarity(ArticlesSimilarityDto articles);
+        Task<ServiceResponse<List<ArticlesSimilarity>>> AddSimilarity(List<ArticlesSimilarityDto> articlesSimilarities);
         Task<ServiceResponse<List<ArticleKeyword>>> UpdateKeywords(UpdateKeywordDto updateKeywordDto);
         Task<ServiceResponse<List<ArticleCategory>>> UpdateCategories(UpdateCategoryDto updateCategoryDto);
         Task<ServiceResponse<List<string>>> GetPendingArticles(string url, PaginationOptionsDto paginationOptions);

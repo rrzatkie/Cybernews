@@ -1,0 +1,36 @@
+<div class="form-group">
+  <input class="form-control"
+    id="typeahead-format"
+    type="text"
+    [ngbTypeahead]="search"
+    [(ngModel)]="keyword"
+    [resultTemplate]="results"
+    [inputFormatter]="formatter"
+    (selectItem)="select($event)"
+    placeholder="Search..."
+  />
+  <div class="icon" ngbDropdown style="z-index:10000">
+    <a class="nav-link" style="cursor: pointer" ngbDropdownToggle id="navbarDropdown1" role="button">
+      {{this.searchTypeNames[this.type]}}
+    </a>
+    <div ngbDropdownMenu aria-labelledby="navbarDropdown1" class="dropdown-menu">
+      <button ngbDropdownItem (click)="changeType(SearchType.Articles)" >Articles</button>
+      <button ngbDropdownItem (click)="changeType(SearchType.Keywords)" >Keywords</button>
+      <button ngbDropdownItem (click)="changeType(SearchType.Categories)" >Categories</button>
+    </div>
+  </div>
+</div>
+
+
+<ng-template #results let-r="result" let-t="term">
+  <a *ngIf="this.type==SearchType.Articles" [routerLink]="['/details/' + r.articleId]">
+    <img [src]="r.articleImgUrl" class="mr-1" style="width: 80px">
+    <ngb-highlight style="color:black; text-decoration:none;" [result]="r.articleTitle.toLocaleUpperCase()" [term]="keyword"></ngb-highlight>
+  </a>
+  <a *ngIf="this.type==SearchType.Keywords" [routerLink]="['/keyword/' + r.keywordId]">
+    <ngb-highlight style="color:black; text-decoration:none;" [result]="r.keywordNameToDisplay.toLocaleUpperCase()" [term]="keyword"></ngb-highlight>
+  </a>
+  <a *ngIf="this.type==SearchType.Categories" [routerLink]="['/category/' + r.categoryId]">
+    <ngb-highlight style="color:black; text-decoration:none;" [result]="r.categoryNameToDisplay.toLocaleUpperCase()" [term]="keyword"></ngb-highlight>
+  </a>
+</ng-template>

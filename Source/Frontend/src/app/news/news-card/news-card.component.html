@@ -25,7 +25,7 @@
                 </p>
               </div>
           </div>
-          <div class="tagcloud">
+          <div *ngIf="this.keywords && this.keywords.length > 0" class="tagcloud">
             <a class="tag-cloud-link" [routerLink]="['/keyword/' + this.keywords[0].keywordId]" >{{this.keywords[0].keywordSlug}}</a>
             <a class="tag-cloud-link" [routerLink]="['/keyword/' + this.keywords[1].keywordId]" >{{this.keywords[1].keywordSlug}}</a>
             <a class="tag-cloud-link" [routerLink]="['/keyword/' + this.keywords[2].keywordId]" >{{this.keywords[2].keywordSlug}}</a>

@@ -59,8 +59,8 @@ class classification:
         self.seed = seed
         self.df = None
         self.df_result = None
-        self.gensim_docs_vectors_w2v=None
-
+        self.gensim_docs_vectors_w2v = None
+        
         self.keras_mlp_bow = None
         self.keras_mlp_w2v = None
         self.keras_mlp_history = None
@@ -260,7 +260,7 @@ class classification:
         x_train.append(x_test.append(x_val))
         corpus = x_train
 
-        self.gensim_corpus_tfidf_result = corpus 
+        self.gensim_corpus_tfidf_result = corpus
         
         return df_result, corpus
 

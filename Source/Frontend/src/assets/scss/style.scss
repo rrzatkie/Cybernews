@@ -1195,22 +1195,51 @@ textarea.form-control {
 }
 
 .search-form {
-	background: lighten($black, 98%);
-	padding: 10px;
+	// background: lighten(#2f527c, 45%);
+  padding: 10px;
+  // margin-left: 30px;
 
 	.form-group {
 		position: relative;
-		margin-bottom: 0;
+    margin-bottom: 0;
+    ::placeholder {
+      letter-spacing: 3px;
+    }
 		input {
 			padding-right: 50px;
-			font-size: 14px;
+      font-size: 14px;
+
+
+      @media (min-width: 320px) {
+        width: 260px;
+      }
+      @media (min-width: 480px) {
+        width: 400px;
+      }
+      @media (min-width: 600px) {
+        width: 500px;
+      }
+      @media (min-width: 768px) {
+        width: 680px;
+      }
+      @media (min-width: 1200px) {
+        width: 530px;
+      }
+      @media (min-width: 1400px) {
+        width: 600px;
+      }
 		}
 	}
 	.icon {
-		position: absolute;
+    position: absolute;
+    visibility: visible;
 		top: 50%;
 		right: 20px;
-		transform: translateY(-50%);
+    transform: translateY(-50%);
+
+    @media (max-width: 768px) {
+      visibility: hidden;
+    }
 	}
 }
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { Category } from 'src/app/shared/article';
 import { ArticleRepositoryService } from '../services/repository/article-repository.service';
 import { ArticleViewService } from '../services/view/article-view.service';
@@ -10,6 +10,8 @@ import { ArticleViewService } from '../services/view/article-view.service';
 })
 export class NavbarComponent implements OnInit {
   @Input() categories: Category[];
+  @Output() burgerMenuEvent: EventEmitter<any> = new EventEmitter();
+
   currentActive: HTMLElement;
   public styleClassActive = "colorlib-active";
 
@@ -25,6 +27,10 @@ export class NavbarComponent implements OnInit {
       this.currentActive = document.getElementById(x);
       this.currentActive.className = this.styleClassActive;
     });
+  }
+
+  toogle(){
+    this.burgerMenuEvent.emit(null);
   }
 
 }

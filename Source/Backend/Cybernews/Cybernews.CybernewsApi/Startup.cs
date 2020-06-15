@@ -41,6 +41,7 @@ namespace Cybernews.CybernewsApi
 
             services.AddScoped<IArticlesUIService,ArticlesUIService>();
             services.AddScoped<IArticlesPipelineService,ArticlesPipelineService>();
+            services.AddScoped<ISearchService,SearchService>();
             
             services.AddCors(options =>
             {
@@ -61,7 +62,7 @@ namespace Cybernews.CybernewsApi
 
             services.AddSwaggerGen(swagger =>
             {
-                swagger.SwaggerDoc("v1", new OpenApiInfo { Title = "My API" });
+                swagger.SwaggerDoc("v1", new OpenApiInfo { Title = "Cybernews API" });
             });
             services.AddSwaggerGenNewtonsoftSupport();
 
@@ -97,7 +98,7 @@ namespace Cybernews.CybernewsApi
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Cybernews API");
             });
         }
     }
