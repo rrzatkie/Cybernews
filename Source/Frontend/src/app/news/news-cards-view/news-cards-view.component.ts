@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef, Input } from '@angular/core';
-import { ArticleCard, ArticleCardType, ArticleDetails, ArticleCardsList, PaginationOptions } from 'src/app/shared/article';
+import { ArticleCard, ArticleCardType, ArticleDetails, ArticleCardsList, PaginationOptions, Query } from 'src/app/shared/article';
 import { ArticleRepositoryService } from 'src/app/core/services/repository/article-repository.service';
 import { ActivatedRoute } from '@angular/router';
 import { ArticleViewService } from 'src/app/core/services/view/article-view.service';
@@ -35,7 +35,7 @@ export class NewsCardsViewComponent implements OnInit {
     this.route.data.subscribe(data => {
       this.articleViewService.setMenuItemActiveState(data.menuActiveLabel);
       if (data['response']) {
-        this.articleCardsList = data.response.data as ArticleCardsList;
+        this.articleCardsList  = data.response.data as ArticleCardsList;
         this.articlesGroups = this.groupArtcilesByDate(this.articleCardsList.articleCards);
       }
       this.title = data.title;
@@ -62,7 +62,13 @@ export class NewsCardsViewComponent implements OnInit {
       limit: this.limit,
       pageNumber: page
     };
-    this.artcileRepositoryService.getArticleCards(paginationOtions).subscribe((response) => {
+
+    const query: Query = {
+      type: this.cardType,
+      itemId: this.articleCardsList.queryItemId
+    };
+
+    this.artcileRepositoryService.getArticleCards(paginationOtions, query).subscribe((response) => {
       this.articleCardsList = response.data as ArticleCardsList;
       this.articlesGroups = this.groupArtcilesByDate(this.articleCardsList.articleCards);
     });
