@@ -17,7 +17,8 @@ class CybernewsPipeline:
     def __init__(self, logger, helper, apiUrl):
         self.logger = logger
         self.helper = helper
-        self.apiUrl = "{}/pipeline".format(apiUrl)
+        self.apiUrlPipeline = "{}/pipeline".format(apiUrl)
+        self.apiUrlES = "{}/es".format(apiUrl)
         self.w2v_model = self.helper.load_state('nlp', 'gensim_w2v_model',  self.helper.VarType.OBJECT)
         self.dictionary = None,
         self.df = None
@@ -147,7 +148,7 @@ class CybernewsPipeline:
 
     def run(self):
         self.df = self.helper.load_state('cybernews_pipeline', 'df', self.helper.VarType.DATAFRAME)
-        api = cybernews_api(self.logger, self.apiUrl)
+        api = cybernews_api(self.logger, self.apiUrlPipeline, self.apiUrlES)
         now = datetime.utcnow().isoformat()
         ####
         # corpus_tfidf = self.helper.load_state('cybernews_pipeline', 'gensim_corpus_tfidf', self.helper.VarType.OBJECT)
@@ -172,7 +173,7 @@ class CybernewsPipeline:
                 entry['pipelineRunAt']=None
                 scraped_articles.pop(i)
                 i-=1
-                
+
             values[i][0]=text
             values[i][8]=entry['url']
 
@@ -210,6 +211,10 @@ class CybernewsPipeline:
             self.logger.info("Respone from Cybernews API: {}".format(status))
         
         self.addSimilarities(api, corpus_similarities, self.df)
+
+
+        self.logger.info("Reindexing Aarticles, Keywords and Categories in ElasticSearhc engine")
+        api.triggerIndexing()
 
         self.helper.save_state('cybernews_pipeline', 'df', self.df, self.helper.VarType.DATAFRAME)
         self.helper.save_state('cybernews_pipeline', 'gensim_corpus_tfidf', corpus_tfidf, self.helper.VarType.OBJECT)

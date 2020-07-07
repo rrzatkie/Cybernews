@@ -52,12 +52,13 @@ class AddSimilarityDto:
         self.value = value
 
 class cybernews_api:
-    def __init__(self, logger, apiUrl):
+    def __init__(self, logger, apiUrlPipeline, apiUrlES):
         self.logger = logger
-        self.apiUrl = apiUrl
+        self.apiUrlPipeline = apiUrlPipeline
+        self.apiUrlES = apiUrlES
 
     def getArticles(self):
-        url = "{}/articles".format(self.apiUrl)
+        url = "{}/articles".format(self.apiUrlPipeline)
 
         self.logger.info("Fetching articles from {}".format(self.apiUrl))
         response = requests.get(url)
@@ -68,7 +69,7 @@ class cybernews_api:
         return json_content['data']
 
     def insertOrUpdateArticles(self, articles):
-        url = "{}/articles".format(self.apiUrl)
+        url = "{}/articles".format(self.apiUrlPipeline)
         headers = {'Content-Type' : 'application/json'}
         
         objStrs = []
@@ -82,7 +83,7 @@ class cybernews_api:
 
     def addSimilarity(self, addSimilarityDtos):
         self.logger.info("Started sending {} similarity dtos".format(len(addSimilarityDtos)))
-        url = "{}/similarities/add".format(self.apiUrl)
+        url = "{}/similarities/add".format(self.apiUrlPipeline)
         headers = {'Content-Type' : 'application/json'}
 
         objStrs = []
@@ -96,7 +97,7 @@ class cybernews_api:
         return response.status_code
 
     def updateCategories(self, articleUrl, categories):
-        url = "{}/articles/category".format(self.apiUrl)
+        url = "{}/articles/category".format(self.apiUrlPipeline)
         headers = {'Content-Type' : 'application/json'}
 
         dto = UpdateCategoryDto(articleUrl, categories);
@@ -107,7 +108,7 @@ class cybernews_api:
         return response.status_code 
 
     def upadateArticle(self, article):
-        url = "{}/articles/".format(self.apiUrl)
+        url = "{}/articles/".format(self.apiUrlPipeline)
         headers = {'Content-Type' : 'application/json'}
 
         dto = article
@@ -117,8 +118,28 @@ class cybernews_api:
 
         return response.status_code 
 
+    def triggerIndexing(self):
+        urlArticles = "{}/index/articles".format(self.apiUrlES)
+        urlKeywords = "{}/index/keywords".format(self.apiUrlES)
+        urlCategories = "{}/index/categories".format(self.apiUrlES)
+
+        headers = {'Content-Type' : 'application/json'}
+
+        responseArticles = requests.post(urlArticles, headers=headers)
+        responseKeywords = requests.post(urlKeywords, headers=headers)
+        responseCategories = requests.post(urlCategories, headers=headers)
+
+        if((responseArticles.status_code == 200) and (responseKeywords.status_code==200) and (responseCategories==200)):
+            self.logger.info("Succesfully indexed entities")
+        else:
+            self.logger.error("Failed to index entites")
+            self.logger.error(responseArticles.text)
+            self.logger.error(responseKeywords.text)
+            self.logger.error(responseCategories.text)
+
+
     def getArticlesSimilarityPendind(self, url):
-        apiUrl = "{}/similarities/pending".format(self.apiUrl)
+        apiUrl = "{}/similarities/pending".format(self.apiUrlPipeline)
         params = { 'url':url }
 
         self.logger.info("Fetching articles from {}".format(apiUrl))
