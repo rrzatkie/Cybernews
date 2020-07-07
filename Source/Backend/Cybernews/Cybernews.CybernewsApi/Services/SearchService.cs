@@ -34,7 +34,7 @@ namespace Cybernews.CybernewsApi.Services
             this.client = new ElasticClient(settings);
         }
 
-        public async Task<ServiceResponse<int>> IndexArticles(List<SearchArticleDto> articles)
+        public async Task<ServiceResponse<int>> IndexArticles()
         {
             var serviceResponse = new ServiceResponse<int>();
             
@@ -43,6 +43,8 @@ namespace Cybernews.CybernewsApi.Services
             if(existResponse.Exists)
             {
                 this.client.Indices.Delete(indexName.ToLowerInvariant());
+                await this.context.Articles.ForEachAsync(x => x.IndexRunAt=null);
+                await this.context.SaveChangesAsync();
             }
 
             logger.LogInformation($"Index: {indexName} exists. Deleting.");
@@ -84,7 +86,7 @@ namespace Cybernews.CybernewsApi.Services
             );
             
             var articlesQuery = this.context.Articles;
-            var count = articles.Count != 0 ? articles.Count : await articlesQuery.CountAsync();
+            var count = await articlesQuery.CountAsync();
             
             for(var i=0; i<count; i+=512){
                 var articlesEntities = await articlesQuery
@@ -92,7 +94,7 @@ namespace Cybernews.CybernewsApi.Services
                     .Skip(i)
                     .Take(512)
                     .ToListAsync();
-                articles = this.mapper.Map<List<SearchArticleDto>>(articlesEntities);
+                var articles = this.mapper.Map<List<SearchArticleDto>>(articlesEntities);
 
                 logger.LogInformation("Indexing articles:");
                 logger.LogInformation(string.Join("\n ", articles.Select(x => x.Title).ToList()));
@@ -108,7 +110,7 @@ namespace Cybernews.CybernewsApi.Services
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<int>> IndexCategories(List<SearchCategoryDto> categories)
+        public async Task<ServiceResponse<int>> IndexCategories()
         {
             var serviceResponse = new ServiceResponse<int>();
             
@@ -158,10 +160,10 @@ namespace Cybernews.CybernewsApi.Services
             );
             
             var categoriesQuery = this.context.Categories;
-            var count = categories.Count != 0 ? categories.Count : await categoriesQuery.CountAsync();
+            var count = await categoriesQuery.CountAsync();
             
             var categoriesEntities = await categoriesQuery.ToListAsync();
-            categories = this.mapper.Map<List<SearchCategoryDto>>(categoriesEntities);
+            var categories = this.mapper.Map<List<SearchCategoryDto>>(categoriesEntities);
 
             logger.LogInformation("Indexing categorties:");
             logger.LogInformation(string.Join("\n ", categories.Select(x => x.Name).ToList()));
@@ -176,7 +178,7 @@ namespace Cybernews.CybernewsApi.Services
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<int>> IndexKeywords(List<SearchKeywordDto> keywords)
+        public async Task<ServiceResponse<int>> IndexKeywords()
         {
             var serviceResponse = new ServiceResponse<int>();
             
@@ -226,10 +228,10 @@ namespace Cybernews.CybernewsApi.Services
             );
             
             var keywordsQuery = this.context.Keywords;
-            var count = keywords.Count != 0 ? keywords.Count : await keywordsQuery.CountAsync();
+            var count = await keywordsQuery.CountAsync();
             
             var keywordsEntities = await keywordsQuery.ToListAsync();
-            keywords = this.mapper.Map<List<SearchKeywordDto>>(keywordsEntities);
+            var keywords = this.mapper.Map<List<SearchKeywordDto>>(keywordsEntities);
 
             logger.LogInformation("Indexing keywords:");
             logger.LogInformation(string.Join("\n ", keywords.Select(x => x.Name).ToList()));

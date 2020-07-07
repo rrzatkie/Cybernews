@@ -26,21 +26,21 @@ namespace Cybernews.CybernewsApi.Controllers
         }
 
         [HttpPost("/es/index/articles")]
-        public async Task<ActionResult> IndexArticles([FromBody] List<SearchArticleDto> articles)
+        public async Task<ActionResult> IndexArticles()
         {
-            return Ok(await service.IndexArticles(articles));
+            return Ok(await service.IndexArticles());
         }
 
         [HttpPost("/es/index/keywords")]
-        public async Task<ActionResult> IndexKeywords([FromBody] List<SearchKeywordDto> keywords)
+        public async Task<ActionResult> IndexKeywords()
         {
-            return Ok(await service.IndexKeywords(keywords));
+            return Ok(await service.IndexKeywords());
         }
 
         [HttpPost("/es/index/categories")]
-        public async Task<ActionResult> IndexCategories([FromBody] List<SearchCategoryDto> categories)
+        public async Task<ActionResult> IndexCategories()
         {
-            return Ok(await service.IndexCategories(categories));
+            return Ok(await service.IndexCategories());
         }
     }
 }

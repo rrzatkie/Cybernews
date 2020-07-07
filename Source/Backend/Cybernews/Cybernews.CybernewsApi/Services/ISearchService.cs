@@ -9,8 +9,8 @@ namespace Cybernews.CybernewsApi.Services
     public interface ISearchService
     {
         Task<ServiceResponse<SearchResultDto>> Search(string keyword, SearchType type);
-        Task<ServiceResponse<int>> IndexArticles(List<SearchArticleDto> articles);
-        Task<ServiceResponse<int>> IndexKeywords(List<SearchKeywordDto> keywords);
-        Task<ServiceResponse<int>> IndexCategories(List<SearchCategoryDto> categories);
+        Task<ServiceResponse<int>> IndexArticles();
+        Task<ServiceResponse<int>> IndexKeywords();
+        Task<ServiceResponse<int>> IndexCategories();
     }
 }
