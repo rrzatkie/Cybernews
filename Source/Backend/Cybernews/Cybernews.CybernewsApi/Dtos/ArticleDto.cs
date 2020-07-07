@@ -8,6 +8,7 @@ namespace Cybernews.CybernewsApi.Dtos
         public string Author { get; set; }
         public string Title { get; set; }
         public System.Int32 DateCreatedUnix { get; set; }
+        public DateTime? PipelineRunAt { get; set; }
         public string ImageUrl { get; set; }
         public string Url { get; set; }
         public List<PipelineKeywordDto> Keywords { get; set; }

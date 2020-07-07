@@ -65,7 +65,7 @@ namespace Cybernews.CybernewsApi.Services
                 serviceResponse.Data.AddRange(articles.Data);
             }
 
-            serviceResponse.Data = serviceResponse.Data.OrderByDescending(x => x.LikesCount+x.CommentsCount).Take(4).ToList();
+            serviceResponse.Data = serviceResponse.Data.OrderByDescending(x => x.LikesCount+x.CommentsCount).Take(5).ToList();
 
             return serviceResponse;
         }
@@ -208,12 +208,6 @@ namespace Cybernews.CybernewsApi.Services
                 .Select(x => new SimilarArticleDto{ Article = this.mapper.Map<ArticleCardDto>(x.Article_2), Similarity = x.Value })
                 .ToListAsync();
 
-            // similarArticles.AddRange(await articlesSimilaritiesQuery
-            //     .Where(x => x.ArticleId_1 == id)
-            //     .Select(x => new SimilarArticleDto{ Article = this.mapper.Map<ArticleCardDto>(x.Article_1), Similarity = x.Value })
-            //     .ToListAsync()
-            // );
-
             serviceResponse.Data.Article = this.mapper.Map<ArticleCardDto>(article);
             serviceResponse.Data.Article.ArticleKeywords = this.mapper.Map<List<Tuple<Keyword,float>>, List<KeywordDto>>(articleKeywords[id]);
             serviceResponse.Data.Article.ArticleCategories = this.mapper.Map<List<Category>, List<CategoryDto>>(articleCategories[id]);
@@ -229,6 +223,9 @@ namespace Cybernews.CybernewsApi.Services
                 Data = new List<KeywordSummaryDto>()
             };
 
+            query.DateCreatedFrom = DateTime.UtcNow.AddDays(-7);
+            query.DateCreatedTo = DateTime.UtcNow;
+
             var keywords = await GetKeywords(query);
             var keywordGroupCounts = keywords.Data
                 .GroupBy(x=>x.KeywordId)
@@ -239,8 +236,8 @@ namespace Cybernews.CybernewsApi.Services
                         Keyword=group.First()
                     }
                 )
-                .OrderByDescending(x=>x.Count)
                 .Take(10)
+                .OrderByDescending(x=>x.Count)
                 .ToList();
             
             // foreach (var k in keywordGroupCounts)
@@ -311,12 +308,13 @@ namespace Cybernews.CybernewsApi.Services
                     x.DateCreated > query.DateCreatedFrom && 
                     x.DateCreated < query.DateCreatedTo
                 )
+                .Include(x => x.ArticleKeywords)
+                .ThenInclude(x => x.Keyword)
                 .ToListAsync();
             
-            var keywords = await articleKeywordsQuery
-                .Where(x=> articles.Contains(x.Article))
-                .Select(x=>x.Keyword)
-                .ToListAsync();
+            var articleKeywords = articles.SelectMany(x => x.ArticleKeywords).OrderByDescending(x=>x.Value);
+
+            var keywords = articleKeywords.Select(x => x.Keyword).ToList();
 
             serviceResponse.Data = mapper.Map<List<Keyword>,List<KeywordDto>>(keywords);
 
@@ -330,6 +328,9 @@ namespace Cybernews.CybernewsApi.Services
             {
                 Data = new List<CategorySummaryDto>()
             };
+
+            query.DateCreatedFrom = DateTime.UtcNow.AddDays(-7);
+            query.DateCreatedTo = DateTime.UtcNow;
 
             var categories = await GetCategories(query);
             var keywordGroupCounts = categories.Data
@@ -364,17 +365,20 @@ namespace Cybernews.CybernewsApi.Services
             var categoriesQuery = this.context.Categories;
             
             var articlesQuery = this.context.Articles;
+
             var articles = await articlesQuery
                 .Where(x => 
                     x.DateCreated > query.DateCreatedFrom && 
                     x.DateCreated < query.DateCreatedTo
                 )
+                .Include(x => x.ArticleCategories)
+                .ThenInclude(x => x.Category)
                 .ToListAsync();
             
-            var categories = await articleCategoriesQuery
-                .Where(x=> articles.Contains(x.Article))
-                .Select(x=>x.Category)
-                .ToListAsync();
+            var articleCategories = articles
+                .SelectMany(x => x.ArticleCategories);
+
+            var categories = articleCategories.Select(x => x.Category).ToList();
 
             serviceResponse.Data = mapper.Map<List<Category>,List<CategoryDto>>(categories);
 

@@ -41,8 +41,8 @@ namespace Cybernews.CybernewsApi.Services
             var nToSkip = (paginationOptions.PageNumber - 1) * paginationOptions.Limit;
             var articles = await articlesQuery
                 .Where(x => !x.PipelineRunAt.HasValue)
-                .Skip(nToSkip)
-                .Take(3)
+                // .Skip(nToSkip)
+                // .Take(3)
                 .ToListAsync();
 
             serviceResponse.Data = articles;
@@ -50,35 +50,9 @@ namespace Cybernews.CybernewsApi.Services
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<Article>> UpdateArticle(Article article)
+        public async Task<ServiceResponse<int>> InsertOrUpdateArticles(List<ArticleDto> articleDtos)
         {
-            var serviceResponse = new ServiceResponse<Article>(); 
-            
-            var articleQuery = this.context.Articles;
-
-            articleQuery.Update(article);
-
-            var res = await this.context.SaveChangesAsync();
-
-            if(res > 0) 
-            {
-                serviceResponse.Data = await articleQuery.SingleOrDefaultAsync(x => x.Id == article.Id);
-            }
-            else
-            {
-                serviceResponse.Success = false;
-                serviceResponse.Message = "Failed to update article.";
-            }
-
-            return serviceResponse;
-        }
-
-        public async Task<ServiceResponse<List<Article>>> AddArticles(List<ArticleDto> articleDtos)
-        {
-            var serviceResponse = new ServiceResponse<List<Article>>()
-            {
-                Data = new List<Article>()
-            }; 
+            var serviceResponse = new ServiceResponse<int>();
             
             var articleQuery = this.context.Articles;
             var categoryQuery = this.context.Categories;
@@ -95,12 +69,28 @@ namespace Cybernews.CybernewsApi.Services
             var articlesCatKeyDict = articlesList
                 .Zip(categoriesList.Zip(keywordsList, Tuple.Create), (k, v) => new { k, v })
                 .ToDictionary(x => x.k, x => x.v);
-            
-            var i = 0;
-            await articleQuery.AddRangeAsync(articlesCatKeyDict.Keys);
-            foreach (var key in articlesCatKeyDict.Keys)
+
+            foreach (var pair in articlesCatKeyDict)
             {
-                foreach (var cat in articlesCatKeyDict[key].Item1)
+                Article article = await articleQuery
+                    .Include(x=>x.ArticleCategories)
+                    .Include(x=>x.ArticleKeywords)
+                    .SingleOrDefaultAsync(x => x.Url == pair.Key.Url);
+
+                if(article == null){
+                    await articleQuery.AddAsync(pair.Key);
+                    article = pair.Key;
+                }
+                else {
+                    articleCategoriesQuery.RemoveRange(article.ArticleCategories);
+                    articleKeywordsQuery.RemoveRange(article.ArticleKeywords);
+                }
+
+                if(pair.Key.PipelineRunAt != null) {
+                    article.PipelineRunAt = pair.Key.PipelineRunAt;
+                }
+
+                foreach (var cat in pair.Value.Item1)
                 {
                     var category = await categoryQuery.SingleOrDefaultAsync(x => x.Slug == cat.Slug);
                     if(category==null)
@@ -108,21 +98,20 @@ namespace Cybernews.CybernewsApi.Services
                         category = cat;
                     }
 
-                    await articleCategoriesQuery.AddAsync(new ArticleCategory(){Article=key, Category=category});
-                    this.logger.LogInformation($"Added new ArticleCategory: {key.Title} - {category.Slug}");
+                    await articleCategoriesQuery.AddAsync(new ArticleCategory(){Article=article, Category=category});
+                    this.logger.LogInformation($"Added new ArticleCategory: {article.Title} - {category.Slug}");
                 }
 
-                foreach (var kwd in articlesCatKeyDict[key].Item2)
+                foreach (var kwd in pair.Value.Item2)
                 {
                     var keyword = await keywordQuery.SingleOrDefaultAsync(x => x.Slug == kwd.Keyword.Slug && x.NameToDisplay==kwd.Keyword.NameToDisplay);
                     if(keyword==null)
                     {
                         keyword = kwd.Keyword;
                     }
-                    await articleKeywordsQuery.AddAsync(new ArticleKeyword(){Article=key, Keyword=keyword, Value=kwd.Value});
-                    this.logger.LogInformation($"Added new ArticleKeyword: {key.Title} - {keyword.Slug}");
+                    await articleKeywordsQuery.AddAsync(new ArticleKeyword(){Article=article, Keyword=keyword, Value=kwd.Value});
+                    this.logger.LogInformation($"Added new ArticleKeyword: {article.Title} - {keyword.Slug}");
                 }
-
 
                 this.logger.LogInformation("Saving changes.");
                 var res = await this.context.SaveChangesAsync();
@@ -131,7 +120,7 @@ namespace Cybernews.CybernewsApi.Services
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<List<ArticlesSimilarity>>> AddSimilarity(List<ArticlesSimilarityDto> articlesSimilarities)
+        public ServiceResponse<List<ArticlesSimilarity>> AddSimilarity(List<ArticlesSimilarityDto> articlesSimilarities)
         {
             var serviceResponse = new ServiceResponse<List<ArticlesSimilarity>>()
             {
@@ -144,44 +133,59 @@ namespace Cybernews.CybernewsApi.Services
             var result = new List<ArticlesSimilarity>();
             foreach (var articlesSimilarityDto in articlesSimilarities)
             {
-                var article_1 = await articleQuery.SingleOrDefaultAsync(x => x.Url==articlesSimilarityDto.Url_1);
-                var article_2 = await articleQuery.SingleOrDefaultAsync(x => x.Url==articlesSimilarityDto.Url_2);
+                var article_1 =  articleQuery.FirstOrDefault(x => x.Url==articlesSimilarityDto.Url_1);
+                var article_2 =  articleQuery.FirstOrDefault(x => x.Url==articlesSimilarityDto.Url_2);
                 
+                var articlesSimilarity = articlesSimilarityQuery
+                    .FirstOrDefault(x => 
+                        x.ArticleId_1==article_1.Id && x.ArticleId_2==article_2.Id
+                    );      
+
+                
+                // bool alreadyAdded = this.context.ChangeTracker.Entries()
+                //     .FirstOrDefault(x => x.State == EntityState.Added && x.Entity is ArticlesSimilarity && 
+                //         (
+                //             (x.Entity as ArticlesSimilarity).ArticleId_1 == article_1.Id && 
+                //             (x.Entity as ArticlesSimilarity).ArticleId_2 == article_2.Id)
+                //         ) != null;
+
                 if
                 (
-                    article_1!=null && 
-                    article_2!=null
+                    articlesSimilarity == null //&& !alreadyAdded
                 ){
-                    this.logger.LogInformation($"Creating ArticleSimilarity for {article_1.Url} and {article_2.Url} with value {articlesSimilarityDto.Value}");
-                    var articlesSimilarity = new ArticlesSimilarity()
+                    this.logger.LogInformation($"Creating ArticleSimilarity for {article_1.Url} and {article_2.Url}");
+                    articlesSimilarity = new ArticlesSimilarity()
                     {
                         Article_1 = article_1,
                         Article_2 = article_2,
                         Value = articlesSimilarityDto.Value
                     };
-                
-                    await articlesSimilarityQuery.AddAsync(articlesSimilarity);
-                    result.Add(articlesSimilarity);
-                } 
+                    articlesSimilarityQuery.Add(articlesSimilarity);
+                }
                 else
                 {
-                    this.logger.LogError($"One of given urls is wrong: \n\t{articlesSimilarityDto.Url_1}\n\t{articlesSimilarityDto.Url_2}");
+                    this.logger.LogInformation($"Already exists. ArticleId1: {article_1.Id}, ArticleId_2: {article_2.Id}. Updating value: {articlesSimilarityDto.Value}");
+                    articlesSimilarity.Value = articlesSimilarityDto.Value;
                 }
+
+                result.Add(articlesSimilarity);
             }
 
             this.logger.LogInformation("Saving changes.");
-            var r = await this.context.SaveChangesAsync();
-            
-            if(r > 0){
-                this.logger.LogInformation("Success!");
-                // serviceResponse.Data.AddRange(result);
-            }
-            else
-            {
-                serviceResponse.Message = "Failure while saving changes to db.";
-                serviceResponse.Success = false;
-            }
+            int r = 0;
+            try
+            {         
+                r = this.context.SaveChanges();
 
+                this.logger.LogInformation("Success!");
+            }
+            catch (DbUpdateException)
+            {
+                var message = "Failure while saving changes to db.";
+
+                this.logger.LogError(message);
+            }
+            
             return serviceResponse;
         }  
 

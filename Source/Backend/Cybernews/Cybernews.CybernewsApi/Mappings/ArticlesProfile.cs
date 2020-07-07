@@ -51,7 +51,8 @@ namespace Cybernews.CybernewsApi.Mappings
                 .ForMember(x => x.ImageUrl, y => y.MapFrom(z => z.ImageUrl))
                 .ForMember(x => x.Url, y => y.MapFrom(z => z.Url))
                 .ForMember(x => x.Title, y => y.MapFrom(z => z.Title))
-                .ForMember(x => x.DateAdded, y => y.MapFrom(z => DateTime.UtcNow));
+                .ForMember(x => x.DateAdded, y => y.MapFrom(z => DateTime.UtcNow))
+                .ForMember(x => x.PipelineRunAt, y => y.MapFrom(z => (z.PipelineRunAt != null) ? z.PipelineRunAt : null));
 
             CreateMap<string, Category>()
                 .ForMember(x => x.NameToDisplay, y => y.MapFrom(z => z))
