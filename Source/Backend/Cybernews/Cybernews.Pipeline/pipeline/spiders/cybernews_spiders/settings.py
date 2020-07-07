@@ -11,8 +11,8 @@
 
 BOT_NAME = 'cybernews_spiders'
 
-SPIDER_MODULES = ['cybernews_spiders.spiders']
-NEWSPIDER_MODULE = 'cybernews_spiders.spiders'
+SPIDER_MODULES = ['spiders.cybernews_spiders.spiders']
+NEWSPIDER_MODULE = 'spiders.cybernews_spiders.spiders'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
@@ -54,9 +54,9 @@ AUTOTHROTTLE_TARGET_CONCURRENCY = 1.0
 AUTOTHROTTLE_DEBUG = False
 
 SPIDER_MIDDLEWARES = {
-    'cybernews_spiders.middlewares.RandomUserAgent': 1,
+    'spiders.cybernews_spiders.middlewares.RandomUserAgent': 1,
 }
 
 ITEM_PIPELINES = {
-    'cybernews_spiders.pipelines.CybernewsSpidersPipeline': 300,
+    'spiders.cybernews_spiders.pipelines.CybernewsSpidersPipeline': 300,
 }

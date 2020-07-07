@@ -3,29 +3,33 @@ import json
 import requests
 import urllib.parse as urlparse
 from urllib.parse import urlencode
+from datetime import datetime
 
-from .logger import logger_init
-from .nlp import nlp
-from .classification import classification
-from .scraper import scraper
+from pipeline.helpers.logger import logger_init
+from pipeline.models.nlp import nlp
+from pipeline.models.classification import classification
+from pipeline.models.scraper import scraper
 
 
-class CybernewsAPIArticleDto:
+class ArticleDto:
     def __init__(  self,
                     author,
-                    imageUrl,
-                    title, 
-                    url, 
+                    title,
                     dateCreatedUnix, 
-                    categories, 
-                    keywords):
+                    pipelineRunAt, 
+                    imageUrl,
+                    url,
+                    keywords, 
+                    categories
+    ):
         self.author = author
-        self.imageUrl = imageUrl
         self.title = title
-        self.url = url
         self.dateCreatedUnix = dateCreatedUnix
-        self.categories = categories
+        self.pipelineRunAt = pipelineRunAt
+        self.imageUrl = imageUrl
+        self.url = url
         self.keywords = keywords
+        self.categories = categories
 
 class UpdateCategoryDto:
     def __init__(
@@ -63,8 +67,8 @@ class cybernews_api:
 
         return json_content['data']
 
-    def addArticles(self, articles):
-        url = "{}/articles/add".format(self.apiUrl)
+    def insertOrUpdateArticles(self, articles):
+        url = "{}/articles".format(self.apiUrl)
         headers = {'Content-Type' : 'application/json'}
         
         objStrs = []
@@ -77,6 +81,7 @@ class cybernews_api:
         return response.status_code
 
     def addSimilarity(self, addSimilarityDtos):
+        self.logger.info("Started sending {} similarity dtos".format(len(addSimilarityDtos)))
         url = "{}/similarities/add".format(self.apiUrl)
         headers = {'Content-Type' : 'application/json'}
 
@@ -87,6 +92,7 @@ class cybernews_api:
         jsonString = json.dumps(objStrs)
         response = requests.post(url, data=jsonString, headers=headers)
 
+        self.logger.info("Finished.".format(len(addSimilarityDtos)))
         return response.status_code
 
     def updateCategories(self, articleUrl, categories):

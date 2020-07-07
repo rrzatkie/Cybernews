@@ -25,7 +25,7 @@ from gensim import matutils
 from enum import Enum
 from datetime import datetime
 
-from .file_helper import file_helper
+from pipeline.helpers.file_helper import file_helper
 
 class ClassificationMode(Enum):
     BOW = 1
@@ -175,6 +175,9 @@ class classification:
         return df
     
     def predict_category(self, model, vector, encoder):
+        if(type(vector) == np.float64):
+            return "Unknown"
+
         self.logger.info("Predicting category for vector: [{}...{}]".format(vector[:2], vector[-3:]))
         y = model.predict(np.array([vector]))
         
@@ -257,10 +260,9 @@ class classification:
         self.df_result = df_result
         self.logger.info("Merged results to dataframe.")
 
-        x_train.append(x_test.append(x_val))
-        corpus = x_train
+        corpus = np.append(np.append(x_train, x_test), x_val)
 
-        self.gensim_corpus_tfidf_result = corpus
+        self.gensim_corpus_w2v_result = corpus
         
         return df_result, corpus
 
@@ -344,12 +346,12 @@ class classification:
                     300, self.labels_count,
                     seed=self.seed, mode=mode
                 )
-                self.plot_history(self.keras_mlp_history, save_path, mode)
-                if self.categories_predicted_mlp is None: self.predict(
-                    self.keras_mlp_w2v, 
-                    np.array(list(self.df.gensim_docs_vectors_w2v)),
-                    self.labels_encoder
-                )
+                # self.plot_history(self.keras_mlp_history, save_path, mode)
+                # if self.categories_predicted_mlp is None: self.predict(
+                #     self.keras_mlp_w2v, 
+                #     np.array(list(self.df.gensim_docs_vectors_w2v)),
+                #     self.labels_encoder
+                # )
             
             # if self.categories_predicted_mlp is None: self.predict(x)
             self.merge_results(self.df, self.x_test_w2v, self.x_train_w2v, self.x_val_w2v, mode)

@@ -1,13 +1,15 @@
 import sys
+from datetime import datetime
+import multiprocessing as mp
+
 import concurrent.futures
 import requests
 import newspaper as nwp
-import multiprocessing as mp
+from newspaper import Config
 import pandas as pd
 
-from datetime import datetime
-
-from .file_helper import file_helper
+from pipeline.helpers.file_helper import file_helper
+import validators
 
 class scraper:
     def __init__(self, logger, helper):
@@ -18,27 +20,35 @@ class scraper:
 
     def scrap_article(self, url):
         text = ""
-        try:
-            with requests.Session().get(url, timeout=5) as response:
-                self.logger.info('Scraping url: {}'.format(url))
+        if(validators.url(url)):
+            try:
+                with requests.Session() as s:
+                    self.logger.info('Scraping url: {}'.format(url))
+                    s.headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/83.0.4103.61 Chrome/83.0.4103.61 Safari/537.36'}
+                    response = s.get(url, timeout=5)
+                    article = nwp.Article(url)
+                    article.html = response.text
+                    article.download_state = 2
+                    article.parse()
+                    
+                    text = article.text
+                    if(text==''):
+                        raise Exception
 
-                article = nwp.Article(url)
-                article.html = response.text
-                article.download_state = 2
-                article.parse()
-                
-                text = article.text
-        except Exception as e:
-            self.logger.error("Processing failed for url: {}".format(url))
-            
-        return text
+            except Exception as e:
+                self.logger.error("Processing failed for url: {}".format(url))
+            finally:
+                return text
+        else:
+            self.logger.error('Bad URL format.')
+            return text
 
-    def scrap_parallel(self, df):
+
+    def scrap_parallel(self, urls):
         num_cores = mp.cpu_count()
 
         scraped_articles = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=num_cores) as executor:
-            urls = [row['web_sp_link'] for i, row in df.iterrows()]
             scraped_articles = [text for text in executor.map(self.scrap_article, urls)]
         
         self.scraped_articles = scraped_articles
@@ -67,7 +77,6 @@ class scraper:
         self.scraped_articles = helper.load_state(class_name, 'scraped_articles', file_helper.VarType.OBJECT)
 
     def save_state(self, path, helper):
-        helper = file_helper(self.logger)
         class_name = 'scraper'
 
         if self.df is not None: helper.save_state(class_name, 'df', self.df, file_helper.VarType.DATAFRAME)
@@ -85,7 +94,10 @@ class scraper:
             self.load_state(helper)
             
             if self.df is None: self.df=helper.load_df_from_csv(load_path)
-            if self.scraped_articles is None: self.scrap_parallel(self.df)
+
+            urls = [row['web_sp_link'] for i, row in self.df.iterrows()]
+            if self.scraped_articles is None: self.scrap_parallel(urls)
+            
             if self.df_result is None: self.merge_results()
         except:
             exc_type, exc_value, exc_traceback = sys.exc_info()

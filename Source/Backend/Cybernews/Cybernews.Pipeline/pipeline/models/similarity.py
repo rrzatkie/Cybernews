@@ -1,14 +1,15 @@
-from .file_helper import file_helper
 import sys
+from joblib._multiprocessing_helpers import mp
+import concurrent
 from itertools import combinations, repeat
-from scipy.special import comb
+from math import ceil
 
+from scipy.special import comb
 from gensim.similarities.termsim import SparseTermSimilarityMatrix
 from gensim.similarities.docsim import SoftCosineSimilarity
 from gensim.models.keyedvectors import WordEmbeddingSimilarityIndex
-from joblib._multiprocessing_helpers import mp
-import concurrent
-from math import ceil
+
+from pipeline.helpers.file_helper import file_helper
 
 class similarity:
     def __init__(self, logger, helper):
@@ -52,27 +53,20 @@ class similarity:
 
         return term_similarity_matrix
 
-    def softcosine_similarity_index(self, corpus_tfidf, similarity_matrix, df_c, df_n):
-        corpus_tfidf = dict(zip(df_n.web_sp_link.values, corpus_tfidf))
-        urls = list(df_c.web_sp_link.values)
-        
-        corpus_tfidf = [corpus_tfidf[x] for x in urls]
-        
+    def softcosine_similarity_index(self, corpus_tfidf, similarity_matrix):
         index = SoftCosineSimilarity(corpus_tfidf, similarity_matrix, num_best=10)
 
         self.gensim_softcosine_similarity_index = index
 
         return index
 
-    def calc_corpus_similarities(self, index, df_c):
+    def calc_corpus_similarities(self, index):
         num_cores = mp.cpu_count()
         index.chunksize = 1024
-        
-        urls = list(df_c.web_sp_link.values)
+        corpus_count = len(index)
 
-        self.logger.debug("Started computing similarities for corpus of {} articles".format(len(urls)))
+        self.logger.debug("Started computing similarities for corpus of {} articles".format(corpus_count))
 
-        corpus_count = len(urls)
         similarities = [
             (
                 i % 2 == 0 and self.logger.info("Computed similarities for {} of {} articles".format(i, corpus_count))
@@ -80,7 +74,7 @@ class similarity:
             for i, sim in enumerate(index)
         ]
 
-        self.gensim_corpus_similarities = list(zip(urls, similarities))
+        self.gensim_corpus_similarities = similarities
         self.logger.info("Finished computing similarities")
 
         return similarities
@@ -92,7 +86,8 @@ class similarity:
         if self.gensim_term_similarity_matrix is not None: helper.save_state(class_name, 'gensim_term_similarity_matrix', self.gensim_term_similarity_matrix, file_helper.VarType.OBJECT)
         if self.gensim_softcosine_similarity_index is not None: helper.save_state(class_name, 'gensim_softcosine_similarity_index', self.gensim_softcosine_similarity_index, file_helper.VarType.OBJECT)
         if self.gensim_corpus_similarities is not None: helper.save_state(class_name, 'gensim_corpus_similarities', self.gensim_corpus_similarities, file_helper.VarType.OBJECT)
-
+        if self.gensim_corpus_tfidf is not None: helper.save_state(class_name, 'gensim_corpus_tfidf', self.gensim_corpus_tfidf, file_helper.VarType.OBJECT)
+    
 
     def load_state(self, helper):
         class_name = 'similarity'
@@ -123,8 +118,15 @@ class similarity:
 
             if self.gensim_w2v_similarity_index is None: self.w2v_similarity_index(self.gensim_w2v_model.wv)
             if self.gensim_term_similarity_matrix is None: self.term_similarity_matrix(self.gensim_w2v_similarity_index, self.gensim_dictionary, self.gensim_vectorizer_tfidf)
-            if self.gensim_softcosine_similarity_index is None: self.softcosine_similarity_index(self.gensim_corpus_tfidf, self.gensim_term_similarity_matrix, self.df_c, self.df_n)
-            if self.gensim_corpus_similarities is None: self.calc_corpus_similarities(self.gensim_softcosine_similarity_index, self.df_c)
+
+            self.gensim_corpus_tfidf = dict(zip(self.df_n.web_sp_link.values, self.gensim_corpus_tfidf))
+            urls = list(self.df_c.web_sp_link.values)
+            self.gensim_corpus_tfidf = [self.gensim_corpus_tfidf[x] for x in urls]
+
+            if self.gensim_softcosine_similarity_index is None: self.softcosine_similarity_index(self.gensim_corpus_tfidf, self.gensim_term_similarity_matrix)
+            if self.gensim_corpus_similarities is None: 
+                self.calc_corpus_similarities(self.gensim_softcosine_similarity_index)
+                self.gensim_corpus_similarities = list(zip(urls, self.gensim_corpus_similarities))
         except :
             exc_type, exc_value, exc_traceback = sys.exc_info()
             self.logger.error("Caught exception", exc_info=(exc_type, exc_value, exc_traceback))

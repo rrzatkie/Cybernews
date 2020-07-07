@@ -1,7 +1,6 @@
 import logging
 import os
 
-
 def logger_init(rootDir, logger_name="logs"):
     try:
         tmp = os.path.join(rootDir, 'logs')

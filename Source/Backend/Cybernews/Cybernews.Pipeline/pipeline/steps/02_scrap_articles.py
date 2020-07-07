@@ -2,18 +2,18 @@ import sys
 from os.path import abspath, basename, dirname, splitext
 import time
 
-from libs.cybernews_pipeline.shared.logger import logger_init
-from libs.cybernews_pipeline.shared.scraper import scraper
-from libs.cybernews_pipeline.shared.file_helper import file_helper
+from pipeline.models.scraper import scraper
+from pipeline.helpers.logger import logger_init
+from pipeline.helpers.file_helper import file_helper
 
-__ROOT_DIR__ = dirname(abspath(__file__))
+__ROOT_DIR__ = dirname(dirname(dirname(abspath(__file__))))
     
 if __name__ == '__main__':
     logger = logger_init(__ROOT_DIR__, splitext(basename(__file__))[0])
     helper = file_helper(
         logger,
-        pickles_path="{}/libs/cybernews_pipeline/pickles".format(__ROOT_DIR__),
-        data_path="{}/libs/cybernews_pipeline/data".format(__ROOT_DIR__)
+        pickles_path="{}/data/pickles".format(__ROOT_DIR__),
+        data_path="{}/data/df".format(__ROOT_DIR__)
     )
     
     try:

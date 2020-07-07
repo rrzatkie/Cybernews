@@ -1,17 +1,17 @@
 import sys
+from math import ceil, floor
+from datetime import datetime
+import multiprocessing as mp
+import concurrent
+
 from textacy import preprocessing
 from gensim import utils
 from nltk.stem import SnowballStemmer
-from datetime import datetime
-import concurrent
-import multiprocessing as mp
-
 import cufflinks as cf
 import plotly.offline as py
 import pandas as pd
 
-from .file_helper import file_helper
-from math import ceil, floor
+from pipeline.helpers.file_helper import file_helper
 
 class cleaner:
     def __init__(self, logger, helper):

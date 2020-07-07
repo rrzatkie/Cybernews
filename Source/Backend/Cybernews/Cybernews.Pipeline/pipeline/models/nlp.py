@@ -2,24 +2,24 @@ import sys, os, traceback
 import pickle
 from datetime import datetime
 from enum import Enum
+import multiprocessing as mp
+
 
 import numpy as np
 import pandas as pd
-import multiprocessing as mp
-
 import textacy
 from textacy import preprocessing, ke
 from textacy.vsm.vectorizers import Vectorizer
 import spacy
-
 from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
-
 from gensim import utils, matutils, models
 from gensim.parsing.preprocessing import preprocess_string
 from gensim.corpora import Dictionary
 
-from .file_helper import file_helper
+from pipeline.helpers.file_helper import file_helper
+import concurrent
+from math import ceil
 
 class NlpMode(Enum):
     ALL = 1
@@ -75,6 +75,19 @@ class nlp:
 
         return docs
 
+    def stem_words_parallel(self, texts):
+        self.logger.info('Start steming texts...')
+        num_cores = mp.cpu_count()
+
+        texts_chunks = self.chunks(texts, num_cores)
+        docs = []
+        with concurrent.futures.ThreadPoolExecutor(max_workers=num_cores) as executor:
+            [docs.extend(chunk) for chunk in executor.map(self.stem_words, texts_chunks)]
+
+        self.logger.info('Finished steming.')
+        
+        return docs
+
     def gensim_trigrams(self, docs, bigram_model=None, trigram_model=None):
         if((trigram_model is None) or (bigram_model is None)):
             bigram_model = models.Phrases(docs)
@@ -103,10 +116,9 @@ class nlp:
 
         return corpus
 
-
     def gensim_pipeline_bow(self, texts):
         docs = self.gensim_trigrams(
-            self.stem_words(texts)
+            self.stem_words_parallel(texts)
         )
 
         self.gensim_doc2bow(docs)
@@ -199,6 +211,12 @@ class nlp:
 
         return docs_tfidf
 
+    def chunks(self, lst, n_chunks):
+        n = ceil(len(lst)/n_chunks)
+        """Yield successive n-sized chunks from lst."""
+        for i in range(0, len(lst), n):
+            yield lst[i:i + n]
+
     def textacy_preprocess(self, texts):
         self.logger.info('Start preprocessing with textacy...')
 
@@ -225,6 +243,19 @@ class nlp:
 
         return texts
 
+    def preprocess_parallel(self, texts):
+        num_cores = mp.cpu_count()
+
+        texts_chunks = self.chunks(texts, num_cores)
+        texts_result = []
+        with concurrent.futures.ThreadPoolExecutor(max_workers=num_cores) as executor:
+            [texts_result.extend(chunk) for chunk in executor.map(self.textacy_preprocess, texts_chunks)]
+        
+        self.texts=texts_result
+        self.logger.info('Finished preprocessing.')
+
+        return texts_result
+
     def merge_results(self):
         df_result = self.df.reset_index(drop=True)
         
@@ -248,14 +279,14 @@ class nlp:
         google_w2v_path = '{}/downloaded/GoogleNews-vectors-negative300.bin'.format(self.helper.data_path)
 
         # Use only pre-trained model without training
-        model = models.KeyedVectors(google_w2v_path, binary=True)
+        # model = models.KeyedVectors(google_w2v_path, binary=True)
         
-        # model = models.Word2Vec(size = 300, window=5, min_count=1, workers = mp.cpu_count()-4)
-        # model.build_vocab(docs)
-        # model.intersect_word2vec_format(google_w2v_path, lockf=1.0, binary=True)
-        # model.train(docs, total_examples=len(docs), epochs=5)
+        model = models.Word2Vec(size = 300, window=5, min_count=1, workers = mp.cpu_count()-4)
+        model.build_vocab(docs)
+        model.intersect_word2vec_format(google_w2v_path, lockf=1.0, binary=True)
+        model.train(docs, total_examples=len(docs), epochs=5)
 
-        # self.gensim_w2v_model = model
+        self.gensim_w2v_model = model
 
         return model
 
@@ -322,7 +353,7 @@ class nlp:
             self.load_state(mode, helper)
             
             if self.df is None: self.df=helper.load_df_from_csv(load_path)
-            if self.texts is None: self.textacy_preprocess(self.df.text_scraped)
+            if self.texts is None: self.preprocess_parallel(self.df.text_scraped)
 
             if(mode in [NlpMode.SPACY, NlpMode.ALL]):
                 if self.spacy is None: self.init_spacy('en_core_web_md')
@@ -348,3 +379,5 @@ class nlp:
             self.save_state(mode, save_path, helper)
         
         return self
+
+    # def update(self, mode, load_path='', save_path=''):

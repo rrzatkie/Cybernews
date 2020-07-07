@@ -2,16 +2,20 @@ import pandas
 import os
 import re
 from datetime import datetime
+from os.path import abspath, basename, dirname, splitext
+
 import requests
 import json
 
-from libs.cybernews_pipeline.shared.file_helper import file_helper
-from libs.cybernews_pipeline.shared.logger import logger_init
-from libs.cybernews_pipeline.shared.similarity import similarity
-from libs.cybernews_pipeline.shared.cybernews_api import cybernews_api, CybernewsAPIArticleDto, AddSimilarityDto
-from os.path import abspath, basename, dirname, splitext
+from pipeline.helpers.logger import logger_init
+from pipeline.helpers.file_helper import file_helper
+from pipeline.models.similarity import similarity
+from pipeline.cybernews.cybernews_api import cybernews_api, ArticleDto, AddSimilarityDto
+from math import ceil
+from joblib._multiprocessing_helpers import mp
+import concurrent
 
-__ROOT_DIR__ = dirname(abspath(__file__))
+__ROOT_DIR__ = dirname(dirname(dirname(abspath(__file__))))
 
 def addArticles(logger, helper, api):
     df = helper.load_state('classification', 'df_result', helper.VarType.DATAFRAME)
@@ -36,12 +40,13 @@ def addArticles(logger, helper, api):
                     }
                 )
 
-            articleDto = CybernewsAPIArticleDto(
+            articleDto = ArticleDto(
                 author= 'Cyware',
                 imageUrl=article['image'],
                 title=article['title'],
                 url=article['web_sp_link'],
                 dateCreatedUnix=article['p_time'],
+                pipelineRunAt=datetime.utcnow().isoformat(),
                 categories=[article['category']],
                 keywords=keywords
             )
@@ -60,12 +65,15 @@ def addSimilarities(logger,helper, api):
     df_n = helper.load_state('nlp', 'df_result', helper.VarType.DATAFRAME)
     
     d = dict(s.gensim_corpus_similarities)
+    
+    num_cores = mp.cpu_count()
 
+    dtos_list = []
     step = 1024
     for i in range(0, df_c.shape[0], step):
         logger.info("Processed articles: {} of {}".format(i, df_c.shape[0]))
         
-        dtos=[]
+        dtos = []
         for url_1 in df_c[i:i+step].web_sp_link:
             articles = d[url_1][1:]
             assert len(articles) == 9
@@ -79,19 +87,21 @@ def addSimilarities(logger,helper, api):
                         value= article[1]
                     )
                 )
+        dtos_list.append(dtos)
 
-        api.addSimilarity(dtos)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=num_cores) as executor:
+        [chunk for chunk in executor.map(api.addSimilarity, dtos_list)]
 
 if __name__ == '__main__':
     logger = logger_init(__ROOT_DIR__, splitext(basename(__file__))[0])
     helper = file_helper(
         logger,
-        pickles_path="{}/libs/cybernews_pipeline/pickles".format(__ROOT_DIR__),
-        data_path="{}/libs/cybernews_pipeline/data".format(__ROOT_DIR__)
+        pickles_path="{}/data/pickles".format(__ROOT_DIR__),
+        data_path="{}/data/df".format(__ROOT_DIR__)
     )
 
-    ca = cybernews_api(logger, apiUrl = 'http://localhost:4201/api/pipeline')
+    ca = cybernews_api(logger, apiUrl = 'http://localhost:4201/pipeline')
     
-    addArticles(logger, helper, ca)
-    addSimilarities(logger,helper, ca)
+    # addArticles(logger, helper, ca)
+    addSimilarities(logger, helper, ca)
     

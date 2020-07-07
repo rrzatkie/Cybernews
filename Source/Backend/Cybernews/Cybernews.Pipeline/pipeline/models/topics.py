@@ -1,22 +1,20 @@
 import sys
-# gensim imports
-from collections import defaultdict
-from gensim import corpora
-from gensim import models
-from datetime import datetime
-import multiprocessing as mp
-
-from .file_helper import file_helper
-from .nlp import NlpMode
-
-
-import cufflinks as cf
-import plotly.offline as py
-import pandas as pd
 import string
 import os
 import pickle
+from datetime import datetime
+import multiprocessing as mp
+from collections import defaultdict
+
+from gensim import corpora
+from gensim import models
+import cufflinks as cf
+import plotly.offline as py
+import pandas as pd
 from gensim.corpora.dictionary import Dictionary
+
+from .nlp import NlpMode
+from pipeline.helpers.file_helper import file_helper
 
 class topics:
     def __init__(self, logger):

@@ -28,16 +28,16 @@ class CybernewsAPIArticleDto:
         self.keywords = keywords
 
 def addArticle(apiUrl, article):
-    url = "{}/article/add".format(apiUrl)
+    url = "{}/articles".format(apiUrl)
     headers = {'Content-Type' : 'application/json'}
     
     objStrs = []
     objStrs.append(article.__dict__)
     jsonString = json.dumps(objStrs)
+    
     logger.debug("Article is going to be sent to cybernews api: \n{}".format(jsonString))
     response = requests.post(url, data=jsonString, headers=headers)
 
-    
     return response.status_code
 
 class CybernewsSpidersPipeline(object):
@@ -58,15 +58,12 @@ class CybernewsSpidersPipeline(object):
             raise DropItem("Article too short.")
 
         item['title'] = article.title
-        item['text'] = article.text
-        item['length'] = len(article.text.split())
         item['image_url'] = article.top_image
 
         if not item['author'] and article.authors:
             item['author'] = article.authors[0]
 
-        cybernewsArticlesApiUrl = 'http://localhost:4201/api/ArticlesUI'
-        logging.debug("article creation in the db")
+        cybernewsArticlesApiUrl = 'http://localhost:5000/pipeline'
         
         articleDto = CybernewsAPIArticleDto(
             author= item['source'],
