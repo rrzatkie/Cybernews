@@ -60,7 +60,7 @@ class cybernews_api:
     def getArticles(self):
         url = "{}/articles".format(self.apiUrlPipeline)
 
-        self.logger.info("Fetching articles from {}".format(self.apiUrl))
+        self.logger.info("Fetching articles from {}".format(self.apiUrlPipeline))
         response = requests.get(url)
         json_content = json.loads(response.text)
 
@@ -129,7 +129,7 @@ class cybernews_api:
         responseKeywords = requests.post(urlKeywords, headers=headers)
         responseCategories = requests.post(urlCategories, headers=headers)
 
-        if((responseArticles.status_code == 200) and (responseKeywords.status_code==200) and (responseCategories==200)):
+        if((responseArticles.status_code == 200) and (responseKeywords.status_code==200) and (responseCategories.status_code==200)):
             self.logger.info("Succesfully indexed entities")
         else:
             self.logger.error("Failed to index entites")
