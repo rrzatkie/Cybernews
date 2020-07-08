@@ -140,6 +140,7 @@ namespace Cybernews.CybernewsApi.Services
             }
             
             articles = await q
+                .Where(x => x.PipelineRunAt != null)
                 .OrderByDescending(x => x.DateCreated)
                 .Skip(nToSkip).Take(paginationOptions.Limit)
                 .ToListAsync();

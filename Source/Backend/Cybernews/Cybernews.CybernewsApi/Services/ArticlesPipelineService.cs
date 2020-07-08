@@ -220,6 +220,7 @@ namespace Cybernews.CybernewsApi.Services
                         var alreadyExists = await categoryQuery.AnyAsync(x => x.Slug == category.Slug); 
                         if(!alreadyExists)
                         {
+                            this.logger.LogInformation($"Createing category '{categoryEntity.NameToDisplay}'.");
                             await categoryQuery.AddAsync(category);
                         }
                         else
@@ -237,11 +238,20 @@ namespace Cybernews.CybernewsApi.Services
                         serviceResponse.Data.Add(articleCategory);
                     }
 
-                    var result = await this.context.SaveChangesAsync();
-
-                    if(result > 0)
+                    try
                     {
-                        await this.context.SaveChangesAsync();
+                        var result = await this.context.SaveChangesAsync();
+                        this.logger.LogInformation($"Successfully updated categories for Article id: {article.Id}");
+                    }
+                    catch
+                    {
+                        var message = $"Failed to update categories for Article id: {article.Id}";
+                        this.logger.LogError(message);
+
+                        serviceResponse.Success = false;
+                        serviceResponse.Message = message;
+
+                        return serviceResponse;
                     }
                 }
             }

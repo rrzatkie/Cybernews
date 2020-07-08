@@ -69,7 +69,7 @@ class similarity:
 
         similarities = [
             (
-                i % 2 == 0 and self.logger.info("Computed similarities for {} of {} articles".format(i, corpus_count))
+                i % index.chunksize == 0 and self.logger.info("Computed similarities for {} of {} articles".format(i, corpus_count))
             ) or sim 
             for i, sim in enumerate(index)
         ]

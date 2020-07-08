@@ -13,6 +13,15 @@ import concurrent
 from joblib._multiprocessing_helpers import mp
 import numpy as np
 
+class PipelineEntry:
+    def __init__(self, entry):
+        self.entry = entry
+        self.predictedCategory = None
+        self.keywords = None
+        self.text = None
+        self.doc_tfidf = None
+        self.doc_w2v = None
+
 class CybernewsPipeline:
     def __init__(self, logger, helper, apiUrl):
         self.logger = logger
@@ -90,13 +99,16 @@ class CybernewsPipeline:
         return (gensim_corpus_tfidf, docs_keywords, doc_vectors)
 
     def classify(self, doc_vectors):
-        df = self.helper.load_state('classification', 'df_result', self.helper.VarType.DATAFRAME)
+        df = self.df
 
         c = classification(self.logger, self.helper)
         c.load_state(helper=self.helper, mode=ClassificationMode.W2V)
 
         categories = c.predict(c.keras_mlp_w2v, doc_vectors, c.labels_encoder)
-        categories = [df[df.category_slug.str.contains(category)].category.values[0] if category != 'Unknown' else category for category in categories] 
+        categories = [
+            df[df.category_slug.str.contains(category)].category.values[0] if category != 'Unknown' else category
+            for category in categories
+        ] 
 
         return categories
 
@@ -150,39 +162,39 @@ class CybernewsPipeline:
         self.df = self.helper.load_state('cybernews_pipeline', 'df', self.helper.VarType.DATAFRAME)
         api = cybernews_api(self.logger, self.apiUrlPipeline, self.apiUrlES)
         now = datetime.utcnow().isoformat()
-        ####
-        # corpus_tfidf = self.helper.load_state('cybernews_pipeline', 'gensim_corpus_tfidf', self.helper.VarType.OBJECT)
-        # corpus_similarities = self.similarities(corpus_tfidf, self.df.web_sp_link.values)
-        # self.addSimilarities(api, corpus_similarities, self.df)
-        ####
-
+        
         entries = api.getArticles()
 
-        urls = [entry['url'] for entry in entries]
+        pipelineEntries = [PipelineEntry(entry) for entry in entries]
+
+        urls = [pipelineEntry.entry['url'] for pipelineEntry in pipelineEntries]
         scraped_articles = self.scrap(urls)
-
-        columns = self.df.columns
-        values = [[0]*len(columns) for i in range(len(entries))]
-
-        i=0
-        for entry in entries:
+        
+        invalid = []
+        for i in range(len(scraped_articles)):
             text = scraped_articles[i]
-            if(text!=''):
-                entry['pipelineRunAt']=now
+            if(text != ''):    
+                pipelineEntries[i].text = text
+                pipelineEntries[i].entry['pipelineRunAt'] = now
             else:
-                entry['pipelineRunAt']=None
                 scraped_articles.pop(i)
-                i-=1
+                invalid.append(i)
 
-            values[i][0]=text
-            values[i][8]=entry['url']
-
-            i+=1
+        [pipelineEntries.pop(i) for i in invalid]
+        
+        columns = self.df.columns
+        values = [['']*len(columns) for i in range(len(pipelineEntries))]
+        
+        for i, v in enumerate(values):
+            v[0] = pipelineEntries[i].text
+            v[8] = pipelineEntries[i].entry['url']
 
         temp_df = pd.DataFrame(values, columns=columns)
 
         temp_df['text'].replace('', np.nan, inplace=True)
         temp_df.dropna(subset=['text'], inplace=True)
+        temp_df['category_slug'] = temp_df['category_slug'].fillna('')
+        temp_df['category'] = temp_df['category'].fillna('')
         
         self.df = self.df.append(temp_df, ignore_index=True)
 
@@ -191,15 +203,15 @@ class CybernewsPipeline:
 
         corpus_similarities = self.similarities(corpus_tfidf, self.df.web_sp_link.values)
 
-        for entry, categories, keywords in zip(entries, categoriesList, keywordsList):
+        for pipelineEntry, categories, keywords in zip(pipelineEntries, categoriesList, keywordsList):
             article = ArticleDto(
-                author = entry['author'],
-                imageUrl = entry['imageUrl'],
-                title = entry['title'], 
-                url = entry['url'], 
+                author = pipelineEntry.entry['author'],
+                imageUrl = pipelineEntry.entry['imageUrl'],
+                title = pipelineEntry.entry['title'],
+                url = pipelineEntry.entry['url'],
                 dateCreatedUnix = 0,
-                pipelineRunAt = entry['pipelineRunAt'],
-                categories = [categories], 
+                pipelineRunAt = pipelineEntry.entry['pipelineRunAt'],
+                categories = [categories],
                 keywords = keywords
             )
             if(categories == 'Unknown'):
@@ -218,3 +230,5 @@ class CybernewsPipeline:
 
         self.helper.save_state('cybernews_pipeline', 'df', self.df, self.helper.VarType.DATAFRAME)
         self.helper.save_state('cybernews_pipeline', 'gensim_corpus_tfidf', corpus_tfidf, self.helper.VarType.OBJECT)
+
+        self.logger.info("Finished pipeline.")
