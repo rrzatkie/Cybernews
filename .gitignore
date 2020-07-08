@@ -12,5 +12,5 @@ logs/
 .ipynb_checkpoints/
 plots/
 *.pyc
-__pycache__/
 *.log
+*.db
