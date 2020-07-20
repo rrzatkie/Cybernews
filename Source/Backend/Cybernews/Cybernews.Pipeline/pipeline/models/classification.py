@@ -218,6 +218,9 @@ class classification:
         )
 
         es = EarlyStopping(monitor='val_accuracy', mode='max', verbose=1, patience=100)
+        
+        log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
         history = model.fit(
             x_train,
@@ -227,7 +230,7 @@ class classification:
             validation_data=(x_val, y_val),
             shuffle=True,
             verbose=1, 
-            callbacks=[es]
+            callbacks=[es, tensorboard_callback]
         )
 
         results = model.evaluate(
@@ -239,8 +242,11 @@ class classification:
         self.keras_mlp_history = history
         self.logger.info("Evaluation: accuracy -> {} %".format(100*results[1]))
 
-        # y_pred = model.predict(x_test)
-        # confusion_matrix(encoder.inverse_transform(y_test), encoder.inverse_transform(y_pred)) 
+        y_pred = model.predict(x_test)
+        confusion_matrix(
+            self.labels_encoder.inverse_transform(y_test),
+            self.labels_encoder.inverse_transform(y_pred)
+        ) 
         
         if(mode == ClassificationMode.BOW):
             self.keras_mlp_bow = model
